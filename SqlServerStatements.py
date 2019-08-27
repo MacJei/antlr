@@ -331,7 +331,6 @@ class Delete(SqlServerStatements):
         super().__init__(text)
         
     def toPyspark(self, cnv_ds):  
-
         #change truncate to delete
         stmt = re.sub('\bTRUNCATE\s+TABLE\b', 'DELETE FROM', self.text, flags=re.S|re.I)
         
@@ -348,14 +347,17 @@ class Delete(SqlServerStatements):
         stmt = lsnr.out_sql 
         
         cnv_code = ''
-        
+        cnv_ds.cntx.logger.add_log("INFO","DELETE Statement conversion started")
         #add keyword FROM if not present
         if not(re.search(r'\bDELETE\s+\bFROM\b', stmt, re.S|re.I)):
             stmt = re.sub(r'(\bDELETE\s+)', r'\1from ', stmt, flags=re.S|re.I)
-            
+            cnv_ds.cntx.logger.add_log( "INFO","From keyword added in DELEET statement:")
+        else:
+            cnv_ds.cntx.logger.add_log( "INFO","NO addition of FROM keyword is required:")
         #get table name where records will be delete
         table = re.search(r'\bDELETE\s+FROM\s+([\w\[\]#\.]+)', stmt, re.S|re.I).group(1)
         table_re = re.sub(r'(\]|\.|\[)', r'\\\1', table)
+        cnv_ds.cntx.logger.add_log( "INFO","Handling the special characters in DELETE statements ")
         #get data frame name of the table
         table_df = cnv_ds.table_df_map[table]
                 
@@ -371,12 +373,16 @@ class Delete(SqlServerStatements):
                 where_str = re.search(r'WHERE(.*)', stmt, re.S|re.I).group(1).strip()
                 #get from clause statement
                 from_str = re.search(r'(?<=FROM)\s+(.*?)\s+(?=WHERE)', stmt, re.S|re.I).group(1).strip()
+                cnv_ds.cntx.logger.add_log( "INFO","Gathering Select statement after where clause")
+                cnv_ds.cntx.logger.add_log_details(where_str)
+                cnv_ds.cntx.logger.add_log_details(from_str)
             else:
                 #in case of no where clause in delete statement
                 where_str = ''
                 #get from clause statement
                 from_str = re.search(r'(?<=FROM)\s+(.*)', stmt, re.S|re.I).group(1).strip()
-                        
+                cnv_ds.cntx.logger.add_log( "INFO","Gathering Select statement when no where clause present")
+                cnv_ds.cntx.logger.add_log_details(from_str)
             #check if from clause has multiple tables
             if re.search(r'\,', from_str, re.S|re.I):
                 #break from clause in 2 parts. part 1: first table. part 2: rest of the from clause
@@ -391,6 +397,8 @@ class Delete(SqlServerStatements):
                     alias = alias_match.group(1).strip()
                 #select statement to get records to be deleted
                 subtract_sql = f'select {alias}.* \nfrom {from_str} \nwhere {where_str}'
+                cnv_ds.cntx.logger.add_log( "INFO","Multiple tables present in FROM clause -")
+                cnv_ds.cntx.logger.add_log_details(subtract_sql)
             else:
                 #get alias of the table
                 alias_match = re.search(r'{}\s*(?:AS\s+)?(\w*)\s*'.format(table_re), from_str, re.S|re.I)
@@ -401,18 +409,26 @@ class Delete(SqlServerStatements):
                     
                 #select statement to get records to be deleted.
                 subtract_sql = 'select ' + (f'{alias}.*' if alias else '*') + f'\nfrom {from_str}' + (f'\nwhere {where_str}' if where_str else '')
-                
+                cnv_ds.cntx.logger.add_log( "INFO","select statement to get records to be deleted")
+                cnv_ds.cntx.logger.add_log_details(subtract_sql)
             #replace db table names with corresponding data frame name
             subtract_sql = util.replaceTableWithDF(subtract_sql, cnv_ds)
             subtract_sql = self.replaceVariables(cnv_ds, subtract_sql)
                 
             table_df_tmp = table_df + '_1'
+            cnv_ds.cntx.logger.add_log( "INFO","Temporary DF cerated")
+            cnv_ds.cntx.logger.add_log_details(table_df_tmp)
             #pyspark code to remove deleted records from data frame
             cnv_code += f"{table_df_tmp} = spark.sql({subtract_sql})\n"
             cnv_code += f"mod_df[\'{table_df}\'] = mod_df[\'{table_df}\'].subtract({table_df_tmp})\n"
             cnv_code += f"mod_df[\'{table_df}\'].createOrReplaceTempView('{table_df}')\n"
             cnv_code += f"rowcount_df = {table_df_tmp}\n\n" 
-            
+            cnv_ds.cntx.logger.add_log( "INFO","Conversion code that will be executed")
+            cnv_ds.cntx.logger.add_log_details(cnv_code)
+        else:
+            cnv_ds.cntx.logger.add_log( "ERROR","table_df is not present in Union checklist")
+            cnv_ds.cntx.logger.add_log_details(table_df)
+        cnv_ds.cntx.logger.add_log("INFO","DELETE Statement conversion Completed")
         return re.sub(r'^', ' '*4*cnv_ds.tabs, cnv_code, flags=re.M)
 
 #END class Delete
@@ -437,39 +453,42 @@ class Update(SqlServerStatements):
         stmt = lsnr.out_sql + ';' 
              
         cnv_code = ''
-        cnv_log = ''
-        cnv_ds.cntx.logger.add_log("INFO","**UPDATE STATEMENT EXECUTED**") 
+        cnv_ds.cntx.logger.add_log("INFO","Update Statement conversion started") 
         ###
         try:  
             tbl_alias = re.search(r'\bUPDATE\s+(.*?)\s+(?=SET)', stmt, re.S|re.I).group(1).strip()
-            cnv_log += f"Table alias name to be referenced : {tbl_alias}\n"
-
+            cnv_ds.cntx.logger.add_log("INFO","Table alias name to be referenced :")
+            cnv_ds.cntx.logger.add_log_details(tbl_alias)
             try:
                 upd_set = re.search(r'(?<=SET)\s+(.*?);', stmt, re.S|re.I).group(1).strip()
-                cnv_log += f"Statement after 'SET' clause : {upd_set}\n"
+                cnv_ds.cntx.logger.add_log("INFO","Statement after 'SET' clause :")
+                cnv_ds.cntx.logger.add_log_details(upd_set)
         
                 # Searching for the table alias we earlier stored, after "SET"
                 if tbl_alias in upd_set:
-                    cnv_log += f"Table alias present after the 'SET' clause , indicating possibility of 'FROM' clause  \n"
+                    cnv_ds.cntx.logger.add_log( "INFO","Table alias present after the 'SET' clause , indicating possibility of 'FROM' clause  ")
         
                     # Checking if "FROM" exists before "SELECT" :
                     if re.search(r'SELECT|FROM', upd_set, re.S|re.I).group().strip() in ('FROM', 'from'):
-                        cnv_log += f" 'FROM' clause exists before 'SELECT'\n"
+                        cnv_ds.cntx.logger.add_log( "INFO", "'FROM' clause exists before 'SELECT'")
                         
                         # get table ALIAS name that will be updated
                         upd_table_alias = re.search(r'\bUPDATE\s+(.*?)\s+(?=SET)', stmt, re.S|re.I).group(1).strip()
-                        cnv_log += f"Table ALIAS name that will be updated : {upd_table_alias}\n"
+                        cnv_ds.cntx.logger.add_log( "INFO","Table ALIAS name that will be updated :")
+                        cnv_ds.cntx.logger.add_log_details(upd_table_alias)
         
                         # get list of tables involved in update statement
                         if re.search(r'(?<=FROM)\s+(.*?)\s+(?=WHERE)', stmt, re.S|re.I):
                             upd_from_str = re.search(r'(?<=FROM)\s+(.*?)\s+(?=WHERE)', stmt, re.S|re.I).group(1).strip()
                         else:
                             upd_from_str = re.search(r'(?<=FROM)\s+(.*?);', stmt, re.S|re.I).group(1).strip()
-                        cnv_log += f"List of tables involved in update statement : {upd_from_str}\n"
+                        cnv_ds.cntx.logger.add_log( "INFO", "List of tables involved in update statement :")
+                        cnv_ds.cntx.logger.add_log_details(upd_from_str)
         
                         # get table name that will be updated
                         upd_table = re.search(r'([\w\[\]#\.]+)\s+(?:AS\s+)?{}'.format(upd_table_alias), upd_from_str, re.S|re.I).group(1).strip()
-                        cnv_log += f"Table name that will be updated : {upd_table}\n"
+                        cnv_ds.cntx.logger.add_log( "INFO", "Table name that will be updated :")
+                        cnv_ds.cntx.logger.add_log_details(upd_table)
         
                         # get the set section of update statement
                         upd_set_str = re.search(r'(?<=SET)\s+(.*?)\s+(?=FROM)', stmt, re.S|re.I).group(1).strip()
@@ -479,21 +498,24 @@ class Update(SqlServerStatements):
                             upd_where_str = re.search(r'\bFROM\b.*?\bWHERE\b(.*?);', stmt, re.S|re.I).group(1).strip()
                         else:
                             upd_where_str = ''
-                        cnv_log += f"Statements preset after 'WHERE Clause: {upd_where_str}\n"
+                        cnv_ds.cntx.logger.add_log("INFO", "Statements preset after 'WHERE Clause:")
+                        cnv_ds.cntx.logger.add_log_details(upd_where_str)
         
                         # make sql to select records that will be updated
                         if upd_where_str == '':        
                             subtract_sql = f"select {upd_table_alias}.* \n from {upd_from_str}"
                         else:
                             subtract_sql = f"select {upd_table_alias}.* \n from {upd_from_str} \n where {upd_where_str}"
-                        cnv_log += f"Subtract SQL Statement : {subtract_sql}\n"
+                        cnv_ds.cntx.logger.add_log("INFO","Subtract SQL Statement :")
+                        cnv_ds.cntx.logger.add_log_details(subtract_sql)
         
                     # Checking if "WHERE" exists before SELECT :
                     elif re.search(r'WHERE|SELECT', upd_set, re.S|re.I).group().strip() in ('WHERE', 'where'):
 
                     #-o-# getting the table name        
                         upd_table = re.search(r'(?<=UPDATE)\s+([\w\[\]#\.]+)', stmt, re.S|re.I).group().strip()
-                        cnv_log += f"Table name that will be updated : {upd_table}\n"
+                        cnv_ds.cntx.logger.add_log("INFO", "Table name that will be updated : ")
+                        cnv_ds.cntx.logger.add_log_details(upd_table)
                         
                         #get table alias
                         upd_table_alias = upd_table.split(']')[-1]
@@ -503,20 +525,25 @@ class Update(SqlServerStatements):
                                 upd_table_alias = ''                                
                         else:    
                             upd_table_alias = upd_table_alias.replace('as', '').strip()
+                        cnv_ds.cntx.logger.add_log( "INFO","Table ALIAS name that will be updated :")
+                        cnv_ds.cntx.logger.add_log_details(upd_table_alias)
 
                         upd_from_str = upd_table
         
                         # get where part
                         upd_where_str = re.search(r'\bSET\b.*?\bWHERE\b(.*)', stmt, re.S|re.I).group(1).strip()
-                        cnv_log += f"Statements preset after 'WHERE Clause: {upd_where_str}\n"
+                        cnv_ds.cntx.logger.add_log("INFO", "Statements preset after 'WHERE Clause:")
+                        cnv_ds.cntx.logger.add_log_details(upd_where_str)
         
                         # get the set section of update        
                         upd_set_str = re.search(r'(?<=SET)\s+(.*?)\s+(?=WHERE)', stmt, re.S|re.I).group(1).strip()
-                        cnv_log += f"SET section of update : {upd_set_str}\n"
+                        cnv_ds.cntx.logger.add_log("INFO", "SET section of update :")
+                        cnv_ds.cntx.logger.add_log_details(upd_set_str)
         
                         # make sql to select records that will be updated
                         subtract_sql = f"select * \n from {upd_from_str} \n where {upd_where_str}"
-                        cnv_log += f"Subtract SQL Statement : {subtract_sql}\n"
+                        cnv_ds.cntx.logger.add_log("INFO", "Subtract SQL Statement :")
+                        cnv_ds.cntx.logger.add_log_details(subtract_sql)
                     else:        
                         sel_part = re.search(r'\s.*?\w.*?(?=SELECT)', stmt, re.S|re.I).group().strip()
 
@@ -525,7 +552,7 @@ class Update(SqlServerStatements):
                         num_sel_part = re.findall(r'SELECT', stmt, re.S|re.I)
                         upd_sel_index = stmt.index(var_sel)
         
-                        # extracting part  after first select
+                        # extracting part after first select
                         upd_sel_from_str = stmt[upd_sel_index + 8:]
                         var_1 = 'FROM'
                         var_2 = 'WHERE'
@@ -538,7 +565,7 @@ class Update(SqlServerStatements):
                         upd_where_index = stmt.index(var_2)
                         where_str = stmt[upd_where_index + 6:]
         
-                        # Checking is number of selects >=2
+                        # Checking if number of selects >=2
                         if len(num_sel_part) >= 2:
                             frm_part = re.findall(r'FROM', upd_sel_from_str, re.S|re.I)
                             whr_part = re.findall(r'WHERE', upd_sel_from_str, re.S|re.I)
@@ -547,18 +574,21 @@ class Update(SqlServerStatements):
                             if re.search(r'FROM|WHERE|SELECT', upd_from_str_index, re.S|re.I).group().strip() in ('from', 'FROM'):
                                 # get table alias which will be updated        
                                 upd_table_alias = re.search(r'\bUPDATE\s+(.*?)\s+(?=SET)', stmt, re.S|re.I).group(1).strip()
-                                cnv_log += f"Table ALIAS name that will be updated : {upd_table_alias}\n"
+                                cnv_ds.cntx.logger.add_log("INFO","Table ALIAS name that will be updated :")
+                                cnv_ds.cntx.logger.add_log_details(upd_table_alias)
         
                                 # get list of tables involved in update statement
                                 if re.search(r'(?<=FROM)\s+(.*?)\s+(?=WHERE)', upd_from_str_index, re.S|re.I):        
                                     upd_from_str = re.search(r'(?<=FROM)\s+(.*?)\s+(?=WHERE)', upd_from_str_index, re.S|re.I).group(1).strip()
                                 else:
                                     upd_from_str = re.search(r'(?<=FROM)\s+(.*?);', stmt, re.S|re.I).group(1).strip()
-                                cnv_log += f"List of tables involved in update statement : {upd_from_str}\n"
+                                cnv_ds.cntx.logger.add_log("INFO","List of tables involved in update statement :")
+                                cnv_ds.cntx.logger.add_log_details(upd_from_str)
         
                                 # get table name that will be updated
                                 upd_table = re.search(r'([\w\[\]#\.]+)\s*(?:AS\s+)?{}'.format(upd_table_alias), upd_from_str, re.S|re.I).group(1).strip()
-                                cnv_log += f"Table name that will be updated : {upd_table}\n"
+                                cnv_ds.cntx.logger.add_log("INFO","Table name that will be updated :")
+                                cnv_ds.cntx.logger.add_log_details(upd_table)
         
                                 # after from part excluding the select part present in SET
                                 upd_after_frm = re.search('(?<=FROM)\s.*\w.*', upd_from_str_index, re.S|re.I).group().strip()
@@ -568,66 +598,78 @@ class Update(SqlServerStatements):
         
                                 # get the set section of update statement
                                 upd_set_str = re.search(r'(?<=SET)\s+(.*)\s+(?=FROM)', upd_set_str_rep, re.S|re.I).group(1).strip()
-                                cnv_log += f"SET section of update : {upd_set_str}\n"
+                                cnv_ds.cntx.logger.add_log("INFO","SET section of update :")
+                                cnv_ds.cntx.logger.add_log_details(upd_set_str)
         
                                 # get the where section of update statement
                                 if re.search(r'(?<=FROM)\s+(.*?)\s+(?=WHERE)', upd_from_str_index, re.S|re.I):
                                     upd_where_str = re.search(r'\bFROM\b.*?\bWHERE\b(.*?);', upd_from_str_index, re.S|re.I).group(1).strip()
                                 else:
                                     upd_where_str = ''
-                                cnv_log += f"Statements preset after 'WHERE Clause: {upd_where_str}\n"
+                                cnv_ds.cntx.logger.add_log("INFO","Statements preset after 'WHERE Clause:")
+                                cnv_ds.cntx.logger.add_log_details(upd_where_str)
         
                                 # make sql to select records that will be updated
                                 if upd_where_str == '':
                                     subtract_sql = f"select {upd_table_alias}.* \n from {upd_from_str}"        
                                 else:
                                     subtract_sql = f"select {upd_table_alias}.* \n from {upd_from_str} \n where {upd_where_str}"        
-                                cnv_log += f"Subtract SQL Statement : {subtract_sql}\n"
+                                cnv_ds.cntx.logger.add_log("INFO","Subtract SQL Statement :")
+                                cnv_ds.cntx.logger.add_log_details(subtract_sql)
         
                             # Checking if WHERE exists before Select after the first select  present in SET BLOCK :
                             else:
                                 # get table name that will be updated
                                 upd_table = re.search(r'(?<=UPDATE)\s+([\w\[\]#\.]+)', stmt, re.S|re.I).group().strip()
-                                cnv_log += f"Table name that will be updated : {upd_table}\n"
+                                cnv_ds.cntx.logger.add_log("INFO","Table name that will be updated :")
+                                cnv_ds.cntx.logger.add_log_details(upd_table)
                                 upd_table_alias = upd_table
                                 upd_from_str = upd_table
                 
                                 # get the set section of update
                                 upd_set_str = re.search(r'(?<=SET)\s+(.*?)\s+(?=WHERE)', stmt, re.S|re.I).group(1).strip()
-                                cnv_log += f"SET section of update : {upd_set_str}\n"
+                                cnv_ds.cntx.logger.add_log("INFO","SET section of update :")
+                                cnv_ds.cntx.logger.add_log_details(upd_set_str)
         
                                 # get the where section of update statement
                                 upd_where_str = re.search(r'\bSET\b.*?\bWHERE\b(.*)', stmt, re.S|re.I).group(1).strip()
-                                cnv_log += f"Statements preset after 'WHERE Clause: {upd_where_str}\n"
+                                cnv_ds.cntx.logger.add_log("INFO","Statements preset after 'WHERE Clause:")
+                                cnv_ds.cntx.logger.add_log_details(upd_where_str)
                                 upd_from_str = upd_table_alias
         
                                 # make sql to select records that will be updated
                                 subtract_sql = f"select {upd_table_alias}.* \n from {upd_from_str} \n where {upd_where_str}"
-                                cnv_log += f"Subtract SQL Statement : {subtract_sql}\n"
+                                cnv_ds.cntx.logger.add_log("INFO","Subtract SQL Statement :")
+                                cnv_ds.cntx.logger.add_log_details(subtract_sql)
         
                         # SELECT only exists in the column section
                         else:
                             upd_table = re.search(r'\bUPDATE?\s+([\w\[\]#\.]+)', stmt, re.S|re.I).group(1).strip()
-                            cnv_log += f"Table name that will be updated : {upd_table}\n"
+                            cnv_ds.cntx.logger.add_log("INFO","Table name that will be updated :")
+                            cnv_ds.cntx.logger.add_log_details(upd_table)
         
                             upd_table_alias = upd_table
                             upd_from_str = upd_table
         
                             upd_where_str = ''
-                            cnv_log += f"Statements preset after 'WHERE Clause: {upd_where_str}\n"
+                            cnv_ds.cntx.logger.add_log("INFO", f"Statements preset after 'WHERE Clause:")
+                            cnv_ds.cntx.logger.add_log_details(upd_where_str)
         
                             upd_set_str = re.search(r'(?<=SET)\s+(\w.*);', stmt, re.S|re.I).group(1).strip()
-                            cnv_log += f"SET section of update : {upd_set_str}\n"
+                            cnv_ds.cntx.logger.add_log("INFO","SET section of update :")
+                            cnv_ds.cntx.logger.add_log_details(upd_set_str)
         
                             subtract_sql = f"select {upd_table_alias}.* \n from {upd_from_str}"
-                            cnv_log += f"Subtract SQL Statement : {subtract_sql}\n"
+                            cnv_ds.cntx.logger.add_log("INFO","Subtract SQL Statement :")
+                            cnv_ds.cntx.logger.add_log_details(subtract_sql)
         
                         # make sql to select records that will be updated
                         if upd_where_str == '':
                             subtract_sql = f"select {upd_table_alias}.* \n from {upd_from_str}"
                         else:
                             subtract_sql = f"select {upd_table_alias}.* \n from {upd_from_str} \n where {upd_where_str}"
-                        cnv_log += f"Subtract SQL Statement : {subtract_sql}\n"
+                        cnv_ds.cntx.logger.add_log("INFO","Subtract SQL Statement :")
+                        cnv_ds.cntx.logger.add_log_details(subtract_sql)
         
                     #>-o-<   
                     subtract_sql = util.replaceTableWithDF(subtract_sql, cnv_ds)
@@ -639,14 +681,15 @@ class Update(SqlServerStatements):
                         upd_table_df_tmp_1 = upd_table_df + '_1'
                         upd_table_df_tmp_2 = upd_table_df + '_2'
                     except:
-                        cnv_ds.cntx.logger.add_log("ERROR",f"""Table to be updated not present in table_df_map""")
+                        cnv_ds.cntx.logger.add_log("ERROR","""Table to be updated not present in table_df_map""")
+                        cnv_ds.cntx.logger.add_log_details(f"""table_df_map : {cnv_ds.table_df_map} \n update table : {upd_table}""")
                     else:
-                        # create python dictionary with kay as column to be updated and value as update value 
+                        # create python dictionary with key as column to be updated and value as update value 
                         upd_col_dict = {}
             
                         # split set section of update statement to get each column assignment
                         set_fields = util.newSplit(upd_set_str, ',')
-                        cnv_log += "Splitting begins \n"
+                        cnv_ds.cntx.logger.add_log("INFO","Columns Splitting begins ")
                         # for each column assignment get update column and updating value
                         if set_fields:
                             # for each column assignment get update column and updating value
@@ -666,7 +709,7 @@ class Update(SqlServerStatements):
                                 upd_col_dict[side[0]] = f'{side[1]} as {side[0]}'
                             else:
                                 upd_col_dict[f'{upd_table_alias}.{side[0]}'.strip('.')]= f'{side[1]} as {side[0]}'
-                        cnv_log += "Splitting Completed \n"
+                        cnv_ds.cntx.logger.add_log("INFO","Splitting Completed ")
             
                         # pyspark code for update value select statement
                         cnv_code += f"df_col_list = mod_df['{upd_table_df}'].columns\n"
@@ -683,13 +726,15 @@ class Update(SqlServerStatements):
                         upd_from = util.replaceTableWithDF(upd_from, cnv_ds)
                         upd_from = self.replaceVariables(cnv_ds, upd_from) 
                         update_sql = '"select " + df_col_list_str + ' + upd_from                  
-                        cnv_log += f"Update SQL Statement: {update_sql} \n"
+                        cnv_ds.cntx.logger.add_log("INFO","Update SQL Statement :")
+                        cnv_ds.cntx.logger.add_log_details(update_sql)
                 else:
                     cnv_log+='Final Else statement executed\n'
         
                     # get table name which will be updated
                     upd_table = re.search(r'\bUPDATE?\s+([\w\[\]#\.]+)', stmt, re.S|re.I).group(1).strip()
-                    cnv_log += f"Table name that will be updated : {upd_table}\n"
+                    cnv_ds.cntx.logger.add_log("INFO","Table name that will be updated :")
+                    cnv_ds.cntx.logger.add_log_details(upd_table)
         
                     # get corresponding data frame name for the table
                     try :
@@ -697,77 +742,81 @@ class Update(SqlServerStatements):
                         upd_table_df_tmp_1 = upd_table_df + '_1'
                         upd_table_df_tmp_2 = upd_table_df + '_2'
                     except:
-                        cnv_ds.cntx.logger.add_log("ERROR",f"""Table to be updated not present in table_df_map""")
-                        cnv_ds.cntx.logger.add_log_details(f"""table_df_map : {table_df_map} \n update table : {upd_table}""")
-        
-                    # check if update statement has where condition
-                    if re.search(r'\bWHERE\b', stmt, re.S|re.I):
-                        # get the set section of update
-                        upd_set_str = re.search(r'(?<=SET)\s+(.*?)\s+(?=WHERE)', stmt, re.S|re.I).group(1).strip()
-                        # get the where section of update statement
-                        upd_where_str = re.search(r'\bSET\b.*?\bWHERE\b(.*)', stmt, re.S|re.I).group(1).strip()
+                        cnv_ds.cntx.logger.add_log("ERROR","""Table to be updated not present in table_df_map""")
+                        cnv_ds.cntx.logger.add_log_details(f"""table_df_map : {cnv_ds.table_df_map} \n update table : {upd_table}""")
                     else:
-                        # get the set section of update
-                        upd_set_str = re.search(r'(?<=SET)\s+(.*?);', stmt, re.S|re.I).group(1).strip()
-                        upd_where_str = ''
-                    cnv_log += f"SET section of update : {upd_set_str}\n"
-                    cnv_log += f"Statements preset after 'WHERE' Clause: {upd_where_str}\n"
-        
-                    # make sql to select records that will be updated
-                    if upd_where_str == '':
-                        subtract_sql = f"select * \n from {upd_table_df}"
-                    else:
-                        subtract_sql = f"select * \n from {upd_table_df} " + (f"\n where {upd_where_str}" if {upd_where_str} else '')
-                    cnv_log += f"Subtract SQL Statement : {subtract_sql}\n"
-        
-                    # remove semi-colon at the end
-                    if subtract_sql.strip()[-1] == ';':
-                        subtract_sql = subtract_sql.strip()[:-1]
-        
-                    #>-o-<
-                    subtract_sql = util.replaceTableWithDF(subtract_sql, cnv_ds)
-                    subtract_sql = self.replaceVariables(cnv_ds, subtract_sql)                     
-        
-                    # create python dictionary with key as column to be updated and value as update value
-                    upd_col_dict = {}        
-                    # split set section of update statement to get each column assignment
-                    set_fields = util.newSplit(upd_set_str, ',')
-                    cnv_log += "Splitting begins \n"
-                    # for each column assignment get update column and updating value
-                    if set_fields:
+                        # check if update statement has where condition
+                        if re.search(r'\bWHERE\b', stmt, re.S|re.I):
+                            # get the set section of update
+                            upd_set_str = re.search(r'(?<=SET)\s+(.*?)\s+(?=WHERE)', stmt, re.S|re.I).group(1).strip()
+                            # get the where section of update statement
+                            upd_where_str = re.search(r'\bSET\b.*?\bWHERE\b(.*)', stmt, re.S|re.I).group(1).strip()
+                        else:
+                            # get the set section of update
+                            upd_set_str = re.search(r'(?<=SET)\s+(.*?);', stmt, re.S|re.I).group(1).strip()
+                            upd_where_str = ''
+                        cnv_ds.cntx.logger.add_log("INFO","SET section of update :\n")
+                        cnv_ds.cntx.logger.add_log_details(upd_set_str)
+                        cnv_ds.cntx.logger.add_log("INFO","Statements preset after 'WHERE' Clause:")
+                        cnv_ds.cntx.logger.add_log_details(upd_where_str)
+            
+                        # make sql to select records that will be updated
+                        if upd_where_str == '':
+                            subtract_sql = f"select * \n from {upd_table_df}"
+                        else:
+                            subtract_sql = f"select * \n from {upd_table_df} " + (f"\n where {upd_where_str}" if {upd_where_str} else '')
+                        cnv_ds.cntx.logger.add_log("INFO", f"Subtract SQL Statement :")
+                        cnv_ds.cntx.logger.add_log_details(subtract_sql)
+            
+                        # remove semi-colon at the end
+                        if subtract_sql.strip()[-1] == ';':
+                            subtract_sql = subtract_sql.strip()[:-1]
+            
+                        #>-o-< replace db table names with corresponding dataframe name
+                        subtract_sql = util.replaceTableWithDF(subtract_sql, cnv_ds)
+                        subtract_sql = self.replaceVariables(cnv_ds, subtract_sql)                     
+            
+                        # create python dictionary with key as column to be updated and value as update value
+                        upd_col_dict = {}        
+                        # split set section of update statement to get each column assignment
+                        set_fields = util.newSplit(upd_set_str, ',')
+                        cnv_ds.cntx.logger.add_log("INFO","Columns Splitting begins")
                         # for each column assignment get update column and updating value
-                        for field in set_fields:
-                            side = field.split('=')
+                        if set_fields:
+                            # for each column assignment get update column and updating value
+                            for field in set_fields:
+                                side = field.split('=')
+                                side[0] = side[0].strip()
+                                side[1] = self.replaceVariables(cnv_ds, side[1].strip(), False)
+                                if re.match(r'\w+\.\w+', side[0], re.S|re.I):
+                                    upd_col_dict[side[0]] = f'{side[1]} as {side[0]}'
+                                else:
+                                    upd_col_dict[f'{upd_table_alias}.{side[0]}'.strip('.')]= f'{side[1]} as {side[0]}'
+                        else:
+                            side = upd_set_str.split('=')
                             side[0] = side[0].strip()
                             side[1] = self.replaceVariables(cnv_ds, side[1].strip(), False)
                             if re.match(r'\w+\.\w+', side[0], re.S|re.I):
                                 upd_col_dict[side[0]] = f'{side[1]} as {side[0]}'
                             else:
                                 upd_col_dict[f'{upd_table_alias}.{side[0]}'.strip('.')]= f'{side[1]} as {side[0]}'
-                    else:
-                        side = upd_set_str.split('=')
-                        side[0] = side[0].strip()
-                        side[1] = self.replaceVariables(cnv_ds, side[1].strip(), False)
-                        if re.match(r'\w+\.\w+', side[0], re.S|re.I):
-                            upd_col_dict[side[0]] = f'{side[1]} as {side[0]}'
-                        else:
-                            upd_col_dict[f'{upd_table_alias}.{side[0]}'.strip('.')]= f'{side[1]} as {side[0]}'
-                    cnv_log += "Splitting Completed \n"
-        
-                    # pyspark code for update value select statement
-                    cnv_code += f"df_col_list = mod_df['{upd_table_df}'].columns\n"
-                    cnv_code += f"df_col_list_str = ','.join({df_col_list})\n"
-                    cnv_log  += f"df_col_list_str = {','.join(df_col_list)}\n"
-                    cnv_code += f"upd_col_dict = {upd_col_dict}\n\n"
-                    cnv_code += "for col in upd_col_dict.keys():\n"
-                    cnv_code += ' '*4 + "df_col_list_str = df_col_list_str.replace(col,upd_col_dict[col])\n\n"
-        
-                    # final update value select statement
-                    upd_from = f' from {upd_table_df} \n' + (f'where {upd_where_str}' if upd_where_str else '')
-                    upd_from = util.replaceTableWithDF(upd_from, cnv_ds)
-                    upd_from = self.replaceVariables(cnv_ds, upd_from) 
-                    update_sql = '"select " + df_col_list_str + ' + upd_from
-                    cnv_log  += f"Update SQL Statement: {update_sql} \n"
+                        cnv_ds.cntx.logger.add_log("INFO","Splitting Completed ")
+            
+                        # pyspark code for update value select statement
+                        cnv_code += f"df_col_list = mod_df['{upd_table_df}'].columns\n"
+                        cnv_code += f"df_col_list_str = ','.join({df_col_list})\n"
+                        cnv_ds.cntx.logger.add_log("INFO",f"df_col_list_str = {','.join(df_col_list)}")
+                        cnv_code += f"upd_col_dict = {upd_col_dict}\n\n"
+                        cnv_code += "for col in upd_col_dict.keys():\n"
+                        cnv_code += ' '*4 + "df_col_list_str = df_col_list_str.replace(col,upd_col_dict[col])\n\n"
+            
+                        # final update value select statement
+                        upd_from = f' from {upd_table_df} \n' + (f'where {upd_where_str}' if upd_where_str else '')
+                        upd_from = util.replaceTableWithDF(upd_from, cnv_ds)
+                        upd_from = self.replaceVariables(cnv_ds, upd_from) 
+                        update_sql = '"select " + df_col_list_str + ' + upd_from
+                        cnv_ds.cntx.logger.add_log("INFO",f"Update SQL Statement :")
+                        cnv_ds.cntx.logger.add_log_details(update_sql)
                 try:
                     # pyspark code to update records in dataframe
                     cnv_code += f"{upd_table_df_tmp_1} = spark.sql({subtract_sql})\n\n"
@@ -775,16 +824,16 @@ class Update(SqlServerStatements):
                     cnv_code += f"mod_df[\'{upd_table_df}\'] = mod_df[\'{upd_table_df}\'].subtract({upd_table_df_tmp_1}).union({upd_table_df_tmp_2})\n"
                     cnv_code += f"mod_df[\'{upd_table_df}\'].createOrReplaceTempView('{upd_table_df}')\n"
                     cnv_code += f"rowcount_df = {upd_table_df_tmp_2}\n"
-                    cnv_ds.cntx.logger.add_log("INFO","**Update Statement Execution Completed Successfully**")
+                    cnv_ds.cntx.logger.add_log("INFO","Update Statement Conversion Completed Successfully")
                 except:
-                    cnv_ds.cntx.logger.add_log("ERROR","No corresponding dateframe for the update table.")
+                    cnv_ds.cntx.logger.add_log("ERROR","No corresponding date frame for the update table.")
         
             except:
-                cnv_ds.cntx.logger.add_log("ERROR","Exception : The statement doesn't end with ';' \n")
+                cnv_ds.cntx.logger.add_log("ERROR","Exception : The statement doesn't end with ';' ")
                 raise
         except:
-            cnv_ds.cntx.logger.add_log("ERROR",f"""Exception : Statement to be parsed , beyond the scope""")
-            cnv_ds.cntx.logger.add_log_details("""Statement : {stmt}""")
+            cnv_ds.cntx.logger.add_log("ERROR","""Exception : Error occurred while converting the following UPDATE statement -')""")
+            cnv_ds.cntx.logger.add_log_details(stmt)
             raise
         ###
        
@@ -1028,8 +1077,8 @@ class Cursor(SqlServerStatements):
         cnv_code = ''
         cnv_log = '' 
         stmt = self.text
-
-        # check if declare cursor statemennt
+        # check if declare cursor statement
+        cnv_ds.cntx.logger.add_log("INFO", "CURSOR statement conversion started")
         if re.search(r'^DECLARE\s+\w+\s+CURSOR\b', stmt, re.S|re.I):
             # get cursor name
             cur_name = re.search(r'^DECLARE\s+(\w+)\s+CURSOR\b', stmt, re.S|re.I).group(1).strip()
@@ -1053,43 +1102,51 @@ class Cursor(SqlServerStatements):
                 cur_sel_stmt = util.replaceTableWithDF(cur_sel_stmt, cnv_ds)
                 cur_sel_stmt = self.replaceVariables(cnv_ds, cur_sel_stmt)                
             else:
-                cnv_log += 'FOR select statement not found or not in order \n'
+                cnv_ds.cntx.logger.add_log("INFO",'FOR select statement not found or not in order')
             # Pyspark code for cursor select statement 
             cnv_code += f"{cur_name}__df = spark.sql({cur_sel_stmt})\n"
-            cnv_log += f"Creating data frame for Cursor {cur_name}__df\n"         
+            cnv_ds.cntx.logger.add_log("INFO", "Creating data frame for Cursor {cur_name}__df")     
         
-        # check if open cursor statemennt
+        # check if open cursor statement
         if re.search(r'^OPEN\s+\w+', stmt, re.S|re.I):
             # get cursor name
             cur_name = re.search(r'^OPEN\s+(\w+)',stmt,re.S|re.I).group(1).strip()
             #create iterator
             cnv_code += f"{cur_name}__df_iter = iter({cur_name}__df).collect()\n"
             cnv_code += f"fetch_status = 0\n"
-            cnv_log += f"Collecting dataframe for Cursor {cur_name}__df select \n"
-            
+            cnv_ds.cntx.logger.add_log("INFO", "Collecting Dataframe for Cursor {cur_name}__df")
+            cnv_ds.cntx.logger.add_log_details ("{cur_name}__df_iter") 
+        else:
+            cnv_ds.cntx.logger.add_log("WARN","No OPEN Cursor Statement is present")
         # Fetch from cursor statement
         if re.search(r'^FETCH\s+\w+\s+FROM\s+\w+', stmt, re.S|re.I):
             # get cursor name
             cur_name = re.search(r'^FETCH\s+\w+\s+FROM\s+(\w+)',stmt,re.S|re.I).group(1).strip()            
             # get fetch into vars
             ftch_vars = re.search(r'\bINTO\s+(.*)',stmt,re.S|re.I).group(1).strip()
-            cnv_log += f"Separating the fetch statement variables\n"
+            cnv_ds.cntx.logger.add_log("INFO", "Separating the fetch statement variables")
             # replacing @ from input variable
             ftch_vars = ftch_vars.replace('@','')
-            
+            cnv_ds.cntx.logger.add_log("INFO", "{ftch_vars}")
             cnv_code += f"{cur_name}__df_cols = {cur_name}__df.columns\n"
             cnv_code += "try:\n";
             cnv_code += ' '*4 + f"{cur_name}__df_row = next({cur_name}__df_iter).asDict()\n"
             cnv_code += ' '*4 + f"{ftch_vars} = list({cur_name}__df_row[col] for col in {cur_name}__df_cols)\n"
             cnv_code += "except StopIteration:\n"
             cnv_code += ' '*4 + f"fetch_status = 1\n"
-            
+            cnv_ds.cntx.logger.add_log("INFO", "End of cursor iteration")
+        else:
+            cnv_ds.cntx.logger.add_log("WARN", "No FETCH Statement is present")
+            cnv_ds.cntx.logger.append_sublog("Not a Correct Cursor statement")
         # Close cursor statements
-        if re.search(r'^CLOSEs+\w+', stmt, re.S|re.I):
+        if re.search(r'^CLOSE\s+\w+', stmt, re.S|re.I):
             cur_name = re.search(r'^CLOSE\s+(\w+)',stmt,re.S|re.I).group(1).strip()
             cnv_code += f"del {cur_name}\n"
-            
-        return re.sub(r'^', ' '*4*cnv_ds.tabs, cnv_code, flags=re.M) 
+            cnv_ds.cntx.logger.add_log("INFO", "Cursor Closed")
+        else:
+            cnv_ds.cntx.logger.add_log("ERROR", "Cursor CLOSE statement not present")
+        cnv_ds.cntx.logger.add_log("INFO", "CURSOR statement conversion completed")
+        return re.sub(r'^', ' '*4*cnv_ds.tabs, cnv_code, flags=re.M)
 
 #END class Cursor        
        
