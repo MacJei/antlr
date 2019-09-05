@@ -1,0 +1,1083 @@
+[09/05/2019 15:37:18][INFO] :Conversion context :
+                              source_db : sqlserver
+                              target_db : aws_s3
+                              platform : glue
+                              in_code_type : tsql
+                              out_code_type : pyspark
+                              source_dir : C:\Users\514025\Desktop\final_IDW_Sprint\Input
+                              target_dir : C:\Users\514025\Desktop\final_IDW_Sprint\Output
+[09/05/2019 15:37:20][INFO] :Starting conversion for file C:\Users\514025\Desktop\final_IDW_Sprint\Input\P_ManageForecastdata.sql
+[09/05/2019 15:37:20][INFO] :Reading script content
+[09/05/2019 15:37:20][INFO] :Number of lines are 632
+[09/05/2019 15:37:20][INFO] :Removing comment lines from script content
+[09/05/2019 15:37:20][INFO] :Changing script content to lower case.
+[09/05/2019 15:37:20][INFO] :Starting process to split script content to individual statements.
+[09/05/2019 15:40:24][INFO] :Script contect parse completed.
+[09/05/2019 15:40:24][INFO] :Splitting script content into individual statements based on semi-colon.
+[09/05/2019 15:40:24][INFO] :Identiying statements in scope of the converter
+[09/05/2019 15:40:24][WARN] :Statement skipped. Outside stored procedure definition.
+                              use [amsdata]
+[09/05/2019 15:40:24][WARN] :Statement skipped. Outside stored procedure definition.
+                              go
+[09/05/2019 15:40:24][WARN] :Statement skipped. Outside stored procedure definition.
+                              set ansi_nulls on
+[09/05/2019 15:40:24][WARN] :Statement skipped. Outside stored procedure definition.
+                              go
+[09/05/2019 15:40:24][WARN] :Statement skipped. Outside stored procedure definition.
+                              set quoted_identifier on
+[09/05/2019 15:40:24][WARN] :Statement skipped. Outside stored procedure definition.
+                              go
+[09/05/2019 15:40:24][WARN] :Statement skipped. Not Supported.
+                              create procedure [dbo].[p_manageforecastdata](
+                              @imode int =2
+                              )
+                              as 
+                              begin
+[09/05/2019 15:40:24][WARN] :Statement skipped. Not Supported.
+                              set nocount on
+[09/05/2019 15:40:24][WARN] :Statement skipped. Not Supported.
+                              set transaction
+[09/05/2019 15:40:24][WARN] :Statement skipped. Not Supported.
+                              isolation level read uncommitted
+[09/05/2019 15:40:24][WARN] :Statement skipped. Not Supported.
+                              begin
+[09/05/2019 15:40:24][WARN] :Statement skipped. Not Supported.
+                              create table  #lt_calculation_temp(
+                              		lt_calculationid int identity(1,1) primary key ,
+                              		saleinputid int,
+                              		market_cd			   varchar(10) null,
+                              		tou_schedule_type_cd   varchar(10) null,
+                              		ufe_zone_cd			   varchar(10) null,
+                              		weather_sensitivity_cd varchar(10) null,
+                              		load_profile_cd		   varchar(100) null,
+                              		forecast_profile_cd	   varchar(100) null,
+                              		weather_zone_cd		   varchar(20) null,
+                              		meter_type_cd		   varchar(4) null,
+                              		book_cd				   varchar(10) null,
+                              		lse_cd				   varchar(50) null,
+                              		loss_cd				   varchar(50) null,
+                              		utility_cd			   varchar(50) null,
+                              		congestion_zone_cd	   varchar(50) null, 
+                              		prov_state_cd		   varchar(2) null,
+                              		product_type_cd		   varchar(50) null,
+                              		component_type_cd	   varchar(25) null,
+                              		temp_band_cd		   varchar(25) null,
+                              		source_cd			   varchar(50) null,
+                              		forecast_dt			   date null,
+                              		hour_num			   int null,
+                              		usage_factor		   float null,
+                              		esiid_cnt			   int null,
+                              		unadj_load			   numeric(18, 6) null,
+                              		distrib_loss_load	   numeric(18, 6) null,
+                              		transmission_loss_load numeric(18, 6) null,
+                              		ufe_loss_load		   numeric(18, 6) null,
+                              		ancillary_loss_load	   numeric(18, 6) null,
+                              		deration_loss_load	   numeric(18, 6) null,
+                              		cap_ob				   float null,
+                              		tran_ob				   float null,
+                              		crdt				   datetime2(3) null,
+                              		batch_dt			   date null,
+                              		batch_hr			   int null,
+                              		block_12x12_desc       varchar(6) null,
+                              		weather_station		   varchar(10) null,
+                              		cluster_cd			   varchar(50) null,
+                              		[date]				   date,
+                              		[day]				int,	
+                              		esiid_cnt_cal	numeric(18,6) ,
+                              		flow_start_dt date ,
+                              		flow_stop_dt date,
+                              		monday int ,
+                              		block int 
+                              	)
+[09/05/2019 15:40:24][WARN] :Statement skipped. Not Supported.
+                              create index lt_index on #lt_calculation_temp (lt_calculationid)
+[09/05/2019 15:40:24][WARN] :Statement skipped. Not Supported.
+                              create  nonclustered index idx_forecast_dt on #lt_calculation_temp (forecast_dt,hour_num)
+[09/05/2019 15:40:24][WARN] :Statement skipped. Not Supported.
+                              begin
+[09/05/2019 15:40:24][WARN] :Statement skipped. Not Supported.
+                              end
+[09/05/2019 15:40:24][WARN] :Statement skipped. Not Supported.
+                              deallocate st_loop
+[09/05/2019 15:40:24][WARN] :Statement skipped. Not Supported.
+                              create table #tempessiid (
+                              		id int identity(1,1) primary key,
+                              		load_profile_cd varchar(50) ,	
+                              		cluster_cd varchar(50)  null,
+                              		loss_cd    varchar(50) null,
+                              		utility_cd varchar(50) null,
+                              		weather_zone_cd varchar(20) null,
+                              		weather_station varchar(10) null,
+                              		congestion_zone_cd varchar(50) null,
+                              		product_type_cd varchar(50) null,
+                              		component_type_cd varchar(25) null,
+                              		book_cd varchar(50) null,
+                              		lse_cd  varchar(50) null,
+                              		meter_type_cd varchar(10)null,
+                              		prov_state_cd varchar(5) null,
+                              		edate date null ,
+                              		emonth int null,
+                              		eyear int null ,
+                              		esiidcnt int null
+                              		)
+[09/05/2019 15:40:24][WARN] :Statement skipped. Not Supported.
+                              create index esiid_index on #tempessiid (id)
+[09/05/2019 15:40:24][WARN] :Statement skipped. Not Supported.
+                              create  nonclustered index idx_essid_dt on #tempessiid (load_profile_cd ,cluster_cd,loss_cd,utility_cd,weather_zone_cd ,weather_station,congestion_zone_cd,product_type_cd,component_type_cd,
+                              								book_cd,lse_cd,meter_type_cd,prov_state_cd,edate,emonth,eyear)
+[09/05/2019 15:40:24][WARN] :Statement skipped. Not Supported.
+                              drop table #tempessiid
+[09/05/2019 15:40:24][WARN] :Statement skipped. Not Supported.
+                              drop table #lt_calculation_temp
+[09/05/2019 15:40:24][WARN] :Statement skipped. Not Supported.
+                              end
+[09/05/2019 15:40:24][WARN] :Statement skipped. Not Supported.
+                              begin
+[09/05/2019 15:40:24][WARN] :Statement skipped. Not Supported.
+                              create table  #st_calculation_temp(
+                              		st_calculationid int identity (1,1) primary key,
+                              		saleinputid int,
+                              		market_cd			   varchar(10) null,
+                              		tou_schedule_type_cd   varchar(10) null,
+                              		ufe_zone_cd			   varchar(10) null,
+                              		weather_sensitivity_cd varchar(10) null,
+                              		load_profile_cd		   varchar(50) null,
+                              		forecast_profile_cd	   varchar(50) null,
+                              		weather_zone_cd		   varchar(20) null,
+                              		meter_type_cd		   varchar(4) null,
+                              		book_cd				   varchar(10) null,
+                              		lse_cd				   varchar(10) null,
+                              		loss_cd				   varchar(50) null,
+                              		utility_cd			   varchar(50) null,
+                              		congestion_zone_cd	   varchar(50) null, 
+                              		prov_state_cd		   varchar(2) null,
+                              		product_type_cd		   varchar(50) null,
+                              		component_type_cd	   varchar(2) null,
+                              		temp_band_cd		   char(1) null,
+                              		source_cd			   varchar(10) null,
+                              		forecast_dt			   datetime null,
+                              		hour_num			   int null,
+                              		usage_factor		   float null,
+                              		esiid_cnt			   int  null,
+                              		unadj_load			   numeric(18, 6) null,
+                              		distrib_loss_load	   numeric(18, 6) null,
+                              		transmission_loss_load numeric(18, 6) null,
+                              		ufe_loss_load		   numeric(18, 6) null,
+                              		ancillary_loss_load	   numeric(18, 6) null,
+                              		deration_loss_load	   numeric(18, 6) null,
+                              		cap_ob				   float null,
+                              		tran_ob				   float null,
+                              		crdt				   datetime2(3) null,
+                              		batch_dt			   date null,
+                              		batch_hr			   int null,
+                              		block_12x12_desc       varchar(5) null,
+                              		weather_station		   varchar(10) null,
+                              		cluster_cd			   varchar(50) null,
+                              		flow_start_dt date ,
+                              		flow_stop_dt date,
+                              	)
+[09/05/2019 15:40:24][WARN] :Statement skipped. Not Supported.
+                              create index st_index on #st_calculation_temp (st_calculationid)
+[09/05/2019 15:40:24][WARN] :Statement skipped. Not Supported.
+                              create  nonclustered index idx_forecast_dt on #st_calculation_temp (forecast_dt,hour_num)
+[09/05/2019 15:40:24][WARN] :Statement skipped. Not Supported.
+                              begin
+[09/05/2019 15:40:24][WARN] :Statement skipped. Not Supported.
+                              end
+[09/05/2019 15:40:24][WARN] :Statement skipped. Not Supported.
+                              deallocate st_loop
+[09/05/2019 15:40:24][WARN] :Statement skipped. Not Supported.
+                              drop table #st_calculation_temp
+[09/05/2019 15:40:24][WARN] :Statement skipped. Not Supported.
+                              end
+[09/05/2019 15:40:24][WARN] :Statement skipped. Not Supported.
+                              begin
+[09/05/2019 15:40:24][WARN] :Statement skipped. Not Supported.
+                              end
+[09/05/2019 15:40:24][WARN] :Statement skipped. Not Supported.
+                              begin
+[09/05/2019 15:40:24][WARN] :Statement skipped. Not Supported.
+                              end
+[09/05/2019 15:40:24][WARN] :Statement skipped. Not Supported.
+                              raiserror (
+                                    @errormessage, 
+                                    @errorseverity, 
+                                    @errorstate 
+                                    )
+[09/05/2019 15:40:24][WARN] :Statement skipped. Not Supported.
+                              set transaction
+[09/05/2019 15:40:24][WARN] :Statement skipped. Not Supported.
+                              isolation level read committed
+[09/05/2019 15:40:24][WARN] :Statement skipped. Not Supported.
+                              set nocount off
+[09/05/2019 15:40:24][WARN] :Statement skipped. Not Supported.
+                              end
+[09/05/2019 15:40:24][WARN] :Statement skipped. Not Supported.
+                              go
+[09/05/2019 15:40:24][INFO] :Scanning script contect for all the tables used
+[09/05/2019 15:40:24][INFO] :Adding dataframe read code based on conversion context
+                              output code type: pyspark
+                              execution platform: glue
+[09/05/2019 15:40:24][INFO] :Processing Srored Procedure create/alter statement
+[09/05/2019 15:40:24][INFO] :Processing stored procedure definition for p_manageforecastdata
+[09/05/2019 15:40:24][INFO] :Processing DECLARE variable statement
+[09/05/2019 15:40:26][INFO] :Statement parse completed.
+[09/05/2019 15:40:26][INFO] :Processing SET statement
+[09/05/2019 15:40:27][INFO] :Statement parse completed.
+[09/05/2019 15:40:27][INFO] :Replacing variables found in statement @dtnow
+[09/05/2019 15:40:27][WARN] :Check if + operator used for string concatination or date arithmetic.
+                              1,dateadd(mm, datediff(m,0,@dtnow+1)
+[09/05/2019 15:40:27][INFO] :Checking for hard coded string and converting to string contination operator '||'
+[09/05/2019 15:40:27][INFO] :Processing SET statement
+[09/05/2019 15:40:31][WARN] :Using default date format 'MM/dd/yyyy' as it is not specified. Consider rewriting function if necessary.
+                              to_date(dateadd(s,-1,dateadd(mm,datediff(m,0,@dtnow+1)+2,0)),'MM/dd/yyyy')
+[09/05/2019 15:40:31][INFO] :Statement parse completed.
+[09/05/2019 15:40:31][INFO] :Replacing variables found in statement @dtnow
+[09/05/2019 15:40:31][WARN] :Check if + operator used for string concatination or date arithmetic.
+                              dateadd(m, datediff(m, 0, @dtnow)+2, 0)
+[09/05/2019 15:40:31][INFO] :Checking for hard coded string and converting to string contination operator '||'
+[09/05/2019 15:40:31][INFO] :Processing SET statement
+[09/05/2019 15:40:31][INFO] :Statement parse completed.
+[09/05/2019 15:40:31][INFO] :Replacing variables found in statement @dtnow
+[09/05/2019 15:40:31][INFO] :Processing SET statement
+[09/05/2019 15:40:31][INFO] :Statement parse completed.
+[09/05/2019 15:40:31][INFO] :Replacing variables found in statement @dtnow
+[09/05/2019 15:40:31][INFO] :Processing SET statement
+[09/05/2019 15:40:32][INFO] :max Function call is same in Target language, hence not converted.
+                              max(flow_stop_dt)
+[09/05/2019 15:40:32][WARN] :Using default date format 'MM/dd/yyyy' as it is not specified. Consider rewriting function if necessary.
+                              to_date(max(flow_stop_dt),'MM/dd/yyyy')
+[09/05/2019 15:40:32][INFO] :Statement parse completed.
+[09/05/2019 15:40:32][INFO] :Converting IF condition statement
+[09/05/2019 15:40:32][INFO] :Modified below conditinal expression from
+                              (imode=1)
+                              to
+                              (imode==1)
+[09/05/2019 15:40:32][INFO] :Converting truncate statement to DELETE statement
+                              truncate table ams.iw_growth_lt_12x12
+                              to
+                              DELETE FROM ams.iw_growth_lt_12x12
+[09/05/2019 15:40:32][INFO] :Statement parse completed.
+[09/05/2019 15:40:32][INFO] :Converting DELETE statement on ams.iw_growth_lt_12x12
+[09/05/2019 15:40:32][INFO] :Processing DECLARE variable statement
+[09/05/2019 15:40:32][INFO] :Converting declare statement for cursor st_loop
+[09/05/2019 15:40:33][INFO] :Script contect parse completed.
+[09/05/2019 15:40:33][INFO] :Converting open statemennt for cursor st_loop
+[09/05/2019 15:40:33][INFO] :Converting fetch statemennt on cursor st_loop
+[09/05/2019 15:40:33][INFO] :Converting WHILE statement
+[09/05/2019 15:40:33][INFO] :Modified below conditinal expression from
+                              fetch_status = 0
+                              to
+                              fetch_status == 0
+[09/05/2019 15:40:33][INFO] :Processing WITH clause Statement for st_calculation
+[09/05/2019 15:40:46][INFO] :Statement parse completed.
+[09/05/2019 15:40:46][INFO] :Replacing variables found in statement @lid,@dtnow,@ltusnstartdate
+[09/05/2019 15:40:46][WARN] :CROSS/OUTER APPLY not in conversion scope
+                              outer apply (
+                              						select hb_date,h.hour_ending,substring(h.block_12x12_desc,1,2)+'HE'+
+                              
+[09/05/2019 15:40:46][WARN] :Check if + operator used for string concatination or date arithmetic.
+                              block_12x12_desc,weather_station,cluster_cd,
+                              			cast(cast(month(hb_date) as varchar)+'
+                              '+cast(year(hb_date) as varchar)as date) 
+                              1,dateadd(mm, datediff(m,0,@liflow_start_dt)+1,0))) as int )
+                              @ltenddate 
+                              					 then cast(datediff(dd,cast(cast(month(hb_date) as varchar)+'
+                              '+cast(year(hb_date) as varchar)as date),@liflow_stop_dt) as int )
+                              @ltenddate
+                              					 then datediff(dd,cast(cast(month(hb_date) as varchar)+'
+                              '+cast(year(hb_date) as varchar)as date),dateadd(s,1,dateadd(mm, datediff(m,0,cast(cast(month(hb_date) as varchar)
+                              '+cast(year(hb_date) as varchar)as date))
+                              1,dateadd(mm, datediff(m,0,@liflow_start_dt)+1,0))) as int )
+                              @ltenddate
+                              							 then cast(datediff(dd,cast(cast(month(hb_date) as varchar)+'
+                              '+cast(year(hb_date) as varchar)as date),@liflow_stop_dt) as int )
+                              @ltenddate
+                              							  then datediff(dd,cast(cast(month(hb_date) as varchar)+'
+                              '+cast(year(hb_date) as varchar)as date),dateadd(s,1,dateadd(mm, datediff(m,0,cast(cast(month(hb_date) as varchar)
+                              '+cast(year(hb_date) as varchar)as date))
+                              
+                              			 cast(datediff(dd,cast(cast(month(hb_date) as varchar)+'
+                              '+cast(year(hb_date) as varchar)as date),dateadd(s,1,dateadd(mm, datediff(m,0,cast(cast(month(hb_date) as varchar)
+                              '+cast(year(hb_date) as varchar)as date))
+                              esiid_cnt  as numeric(18,6)),0) esiid_cnt_cal,
+                              			 flow_start_dt ,flow_stop_dt 
+                              			 ,cast(datediff(dd,cast(cast(month(hb_date) as varchar)+'
+                              '+cast(year(hb_date) as varchar)as date),dateadd(s,1,dateadd(mm, datediff(m,0,cast(cast(month(hb_date) as varchar)
+                              '+cast(year(hb_date) as varchar)as date))
+                              block_12x12_desc,1,2)+'HE'
+                               1 then '0' + cast(h
+[09/05/2019 15:40:46][INFO] :Checking for hard coded string and converting to string contination operator '||'
+[09/05/2019 15:41:45][WARN] :concat Function is not covered in scope and has been kept AS IS in target code. Consider manual reconstruction if necessary.
+                              concat([load_profile_cd],'_',[weather_zone_cd])
+[09/05/2019 15:41:45][INFO] :month Function call is same in Target language, hence not converted.
+                              month(hb_date)
+[09/05/2019 15:41:45][INFO] :year Function call is same in Target language, hence not converted.
+                              year(hb_date)
+[09/05/2019 15:41:45][INFO] :year Function call is same in Target language, hence not converted.
+                              year(hb_date)
+[09/05/2019 15:41:45][INFO] :year Function call is same in Target language, hence not converted.
+                              year(@liflow_start_dt)
+[09/05/2019 15:41:45][INFO] :month Function call is same in Target language, hence not converted.
+                              month(hb_date)
+[09/05/2019 15:41:45][INFO] :month Function call is same in Target language, hence not converted.
+                              month(@liflow_start_dt)
+[09/05/2019 15:41:45][INFO] :year Function call is same in Target language, hence not converted.
+                              year(hb_date)
+[09/05/2019 15:41:45][INFO] :year Function call is same in Target language, hence not converted.
+                              year(@liflow_stop_dt)
+[09/05/2019 15:41:45][INFO] :month Function call is same in Target language, hence not converted.
+                              month(hb_date)
+[09/05/2019 15:41:45][INFO] :month Function call is same in Target language, hence not converted.
+                              month(@liflow_stop_dt)
+[09/05/2019 15:41:45][INFO] :month Function call is same in Target language, hence not converted.
+                              month(hb_date)
+[09/05/2019 15:41:45][INFO] :year Function call is same in Target language, hence not converted.
+                              year(hb_date)
+[09/05/2019 15:41:45][INFO] :month Function call is same in Target language, hence not converted.
+                              month(hb_date)
+[09/05/2019 15:41:45][INFO] :year Function call is same in Target language, hence not converted.
+                              year(hb_date)
+[09/05/2019 15:41:45][INFO] :month Function call is same in Target language, hence not converted.
+                              month(hb_date)
+[09/05/2019 15:41:45][INFO] :year Function call is same in Target language, hence not converted.
+                              year(hb_date)
+[09/05/2019 15:41:45][INFO] :year Function call is same in Target language, hence not converted.
+                              year(hb_date)
+[09/05/2019 15:41:45][INFO] :year Function call is same in Target language, hence not converted.
+                              year(@liflow_start_dt)
+[09/05/2019 15:41:45][INFO] :month Function call is same in Target language, hence not converted.
+                              month(hb_date)
+[09/05/2019 15:41:45][INFO] :month Function call is same in Target language, hence not converted.
+                              month(@liflow_start_dt)
+[09/05/2019 15:41:45][INFO] :year Function call is same in Target language, hence not converted.
+                              year(hb_date)
+[09/05/2019 15:41:45][INFO] :year Function call is same in Target language, hence not converted.
+                              year(@liflow_stop_dt)
+[09/05/2019 15:41:45][INFO] :month Function call is same in Target language, hence not converted.
+                              month(hb_date)
+[09/05/2019 15:41:45][INFO] :month Function call is same in Target language, hence not converted.
+                              month(@liflow_stop_dt)
+[09/05/2019 15:41:45][INFO] :month Function call is same in Target language, hence not converted.
+                              month(hb_date)
+[09/05/2019 15:41:45][INFO] :year Function call is same in Target language, hence not converted.
+                              year(hb_date)
+[09/05/2019 15:41:45][INFO] :month Function call is same in Target language, hence not converted.
+                              month(hb_date)
+[09/05/2019 15:41:45][INFO] :year Function call is same in Target language, hence not converted.
+                              year(hb_date)
+[09/05/2019 15:41:45][INFO] :month Function call is same in Target language, hence not converted.
+                              month(hb_date)
+[09/05/2019 15:41:45][INFO] :year Function call is same in Target language, hence not converted.
+                              year(hb_date)
+[09/05/2019 15:41:45][INFO] :month Function call is same in Target language, hence not converted.
+                              month(hb_date)
+[09/05/2019 15:41:45][INFO] :year Function call is same in Target language, hence not converted.
+                              year(hb_date)
+[09/05/2019 15:41:45][INFO] :month Function call is same in Target language, hence not converted.
+                              month(hb_date)
+[09/05/2019 15:41:45][INFO] :year Function call is same in Target language, hence not converted.
+                              year(hb_date)
+[09/05/2019 15:41:45][INFO] :round Function call is same in Target language, hence not converted.
+                              round(	cast(cast(cast ( case  
+                              							 when  year(hb_date)=year(@liflow_start_dt)and month(hb_date)=month(@liflow_start_dt) 
+                              							and hb_date>=@ltstartdate and hb_date<=@ltenddate
+                              							 then  cast(datediff(dd,@liflow_start_dt,dateadd(s,-1,dateadd(mm, datediff(m,0,@liflow_start_dt)+1,0))) as int )+1
+                              							 when  year(hb_date)=year(@liflow_stop_dt)and month(hb_date)=month(@liflow_stop_dt)
+                              							 and hb_date>=@ltstartdate and hb_date<=@ltenddate
+                              							  then  cast(datediff(dd,cast(cast(month(hb_date) as varchar)||'/01/'||cast(year(hb_date) as varchar)as date),@liflow_stop_dt) as int )+1 
+                              						     else  
+                              	 						 case   when  hb_date>=@ltstartdate and hb_date<=@ltenddate
+                              							   then  datediff(dd,cast(cast(month(hb_date) as varchar)||'/01/'||cast(year(hb_date) as varchar)as date),dateadd(s,1,dateadd(mm, datediff(m,0,cast(cast(month(hb_date) as varchar)||'/01/'||cast(year(hb_date) as varchar)as date))+1,0)))
+                              	 						 else  0
+                              							 end 
+                              							 end  
+                              					as numeric(10,8)
+                              				   )/
+                              			 cast(datediff(dd,cast(cast(month(hb_date) as varchar)||'/01/'||cast(year(hb_date) as varchar)as date),dateadd(s,1,dateadd(mm, datediff(m,0,cast(cast(month(hb_date) as varchar)||'/01/'||cast(year(hb_date) as varchar)as date))+1,0))) as numeric(10,8)) as numeric(10,8)
+                              			 )*s.esiid_cnt  as numeric(18,6)),0)
+[09/05/2019 15:41:45][INFO] :month Function call is same in Target language, hence not converted.
+                              month(hb_date)
+[09/05/2019 15:41:45][INFO] :year Function call is same in Target language, hence not converted.
+                              year(hb_date)
+[09/05/2019 15:41:45][INFO] :month Function call is same in Target language, hence not converted.
+                              month(hb_date)
+[09/05/2019 15:41:45][INFO] :year Function call is same in Target language, hence not converted.
+                              year(hb_date)
+[09/05/2019 15:41:45][WARN] :len Function is not covered in scope and has been kept AS IS in target code. Consider manual reconstruction if necessary.
+                              len(h.hour_ending)
+[09/05/2019 15:41:45][WARN] :Using default date format 'MM/dd/yyyy' as it is not specified. Consider rewriting function if necessary.
+                              to_date(h.hb_date,'MM/dd/yyyy')
+[09/05/2019 15:41:45][WARN] :Using default date format 'MM/dd/yyyy' as it is not specified. Consider rewriting function if necessary.
+                              to_date(@liflow_start_dt,'MM/dd/yyyy')
+[09/05/2019 15:41:45][WARN] :Using default date format 'MM/dd/yyyy' as it is not specified. Consider rewriting function if necessary.
+                              to_date(h.hb_date,'MM/dd/yyyy')
+[09/05/2019 15:41:45][WARN] :Using default date format 'MM/dd/yyyy' as it is not specified. Consider rewriting function if necessary.
+                              to_date(@liflow_stop_dt,'MM/dd/yyyy')
+[09/05/2019 15:41:45][INFO] :Statement parse completed.
+[09/05/2019 15:41:45][INFO] :Converting INSERT INTO statement by SELECT. Inserting into #lt_calculation_temp
+[09/05/2019 15:41:45][ERROR]:Error occurred while converting below INSERT statement,
+                              insert into #lt_calculation_temp (saleinputid,market_cd,tou_schedule_type_cd,ufe_zone_cd,weather_sensitivity_cd,load_profile_cd,forecast_profile_cd,
+                              			weather_zone_cd,meter_type_cd,book_cd,lse_cd,loss_cd,utility_cd,congestion_zone_cd,prov_state_cd,
+                              			product_type_cd,component_type_cd,temp_band_cd,source_cd,forecast_dt,hour_num,usage_factor,esiid_cnt,
+                              			unadj_load,distrib_loss_load,transmission_loss_load,ufe_loss_load,ancillary_loss_load,deration_loss_load,
+                              			cap_ob,tran_ob,crdt,batch_dt,batch_hr,block_12x12_desc,weather_station,cluster_cd,[date],[day],esiid_cnt_cal,flow_start_dt ,flow_stop_dt ,monday,block  )
+                              			select	@lid,s.market_cd,tou_schedule_type_cd,ufe_zone_cd,weather_sensitivity_cd,load_profile_cd,
+                              					concat([load_profile_cd],'_',[weather_zone_cd])  as forecast_profile_cd,weather_zone_cd,meter_type_cd,book_cd,lse_cd,loss_cd,
+                              					utility_cd,congestion_zone_cd,prov_state_cd,product_type_cd,component_type_cd,temp_band_cd,
+                              					source_cd,d.hb_date forecast_date,d.hour_ending hournum,usage_factor,
+                              			case  when d.hb_date >=@ltstartdate  and d.hb_date <= @ltenddate then s.esiid_cnt*usage_factor
+                              									  else 0	
+                              								 end esiid_cnt,
+                              			 unadj_load,distrib_loss_load,
+                              			 transmission_loss_load,ufe_loss_load,ancillary_loss_load,deration_loss_load,cap_ob,tran_ob,crdt,batch_dt,batch_hr,
+                              			d.block_12x12_desc,weather_station,cluster_cd,
+                              			cast(cast(month(hb_date) as varchar)+'/01/'+cast(year(hb_date) as varchar)as date) [date],
+                              			 case 
+                              					when year(hb_date)=year(@liflow_start_dt)and month(hb_date)=month(@liflow_start_dt) 
+                              					and  hb_date>=@ltstartdate and hb_date<=@ltenddate 
+                              					 then cast(datediff(dd,@liflow_start_dt,dateadd(s,-1,dateadd(mm, datediff(m,0,@liflow_start_dt)+1,0))) as int )+1
+                              					when year(hb_date)=year(@liflow_stop_dt)and month(hb_date)=month(@liflow_stop_dt)
+                              					 and  hb_date>=@ltstartdate and hb_date<=@ltenddate 
+                              					 then cast(datediff(dd,cast(cast(month(hb_date) as varchar)+'/01/'+cast(year(hb_date) as varchar)as date),@liflow_stop_dt) as int )+1 
+                              			 else 
+                              	 				case when hb_date>=@ltstartdate and hb_date<=@ltenddate
+                              					 then datediff(dd,cast(cast(month(hb_date) as varchar)+'/01/'+cast(year(hb_date) as varchar)as date),dateadd(s,1,dateadd(mm, datediff(m,0,cast(cast(month(hb_date) as varchar)+'/01/'+cast(year(hb_date) as varchar)as date))+1,0)))
+                              					else 0 
+                              					end
+                              	 		  end   [day], 
+                              			   round(	cast(cast(cast (case 
+                              							when year(hb_date)=year(@liflow_start_dt)and month(hb_date)=month(@liflow_start_dt) 
+                              							and hb_date>=@ltstartdate and hb_date<=@ltenddate
+                              							then cast(datediff(dd,@liflow_start_dt,dateadd(s,-1,dateadd(mm, datediff(m,0,@liflow_start_dt)+1,0))) as int )+1
+                              							when year(hb_date)=year(@liflow_stop_dt)and month(hb_date)=month(@liflow_stop_dt)
+                              							 and hb_date>=@ltstartdate and hb_date<=@ltenddate
+                              							 then cast(datediff(dd,cast(cast(month(hb_date) as varchar)+'/01/'+cast(year(hb_date) as varchar)as date),@liflow_stop_dt) as int )+1 
+                              						    else 
+                              	 						case when hb_date>=@ltstartdate and hb_date<=@ltenddate
+                              							  then datediff(dd,cast(cast(month(hb_date) as varchar)+'/01/'+cast(year(hb_date) as varchar)as date),dateadd(s,1,dateadd(mm, datediff(m,0,cast(cast(month(hb_date) as varchar)+'/01/'+cast(year(hb_date) as varchar)as date))+1,0)))
+                              	 						else 0
+                              							end
+                              							end 
+                              					as numeric(10,8)
+                              				   )/
+                              			 cast(datediff(dd,cast(cast(month(hb_date) as varchar)+'/01/'+cast(year(hb_date) as varchar)as date),dateadd(s,1,dateadd(mm, datediff(m,0,cast(cast(month(hb_date) as varchar)+'/01/'+cast(year(hb_date) as varchar)as date))+1,0))) as numeric(10,8)) as numeric(10,8)
+                              			 )*s.esiid_cnt  as numeric(18,6)),0) esiid_cnt_cal,
+                              			 flow_start_dt ,flow_stop_dt 
+                              			 ,cast(datediff(dd,cast(cast(month(hb_date) as varchar)+'/01/'+cast(year(hb_date) as varchar)as date),dateadd(s,1,dateadd(mm, datediff(m,0,cast(cast(month(hb_date) as varchar)+'/01/'+cast(year(hb_date) as varchar)as date))+1,0))) as numeric(10,8))
+                              			 ,d.block
+                              			from st_calculation s 
+                              			outer apply (
+                              						select hb_date,h.hour_ending,substring(h.block_12x12_desc,1,2)+'HE'+
+                              							case when len(h.hour_ending) = 1 then '0' + cast(h.hour_ending as varchar)
+                              							else cast(h.hour_ending as varchar) end as block_12x12_desc,h.block
+                              						from ams.iw_hourly_breakout h 
+                              						where  
+                              						cast(h.hb_date as date)>= cast(@liflow_start_dt as date)
+                              						and cast(h.hb_date as date)<=cast(@liflow_stop_dt as date)
+                              						and h.hour_ending is not null
+                              						) d
+                              list index out of range
+[09/05/2019 15:41:45][INFO] :Converting fetch statemennt on cursor st_loop
+[09/05/2019 15:41:45][INFO] :Converting WHILE statement
+[09/05/2019 15:41:47][INFO] :Statement parse completed.
+[09/05/2019 15:41:47][INFO] :Update Statement conversion started
+[09/05/2019 15:41:47][INFO] :Table alias name to be referenced :
+                              c
+[09/05/2019 15:41:47][INFO] :Statement after 'SET' clause :
+                              unadj_load=IFNULL((c.esiid_cnt*isnull(cst.load,cn.load)/1000),0) 
+                              			from #lt_calculation_temp c 
+                              			left join [ams].[iw_cluster_st] cst on   (c.congestion_zone_cd=cst.zone and c.weather_station=cst.weather_station and c.cluster_cd=cst.cluster_cd and c.forecast_dt=cst.forecast_dt and c.hour_num=cst.hour_num)
+                              			left join [ams].[iw_cluster_normal] cn on (c.congestion_zone_cd=cn.zone and c.weather_station=cn.weather_station and c.cluster_cd=cn.cluster_cd   and c.forecast_dt=cn.forecast_dt and c.hour_num=cn.hour_num)
+[09/05/2019 15:41:47][INFO] :Table alias present after the 'SET' clause , indicating possibility of 'FROM' clause  
+[09/05/2019 15:41:47][INFO] :'FROM' clause exists before 'SELECT'
+[09/05/2019 15:41:47][INFO] :Table ALIAS name that will be updated :
+                              c
+[09/05/2019 15:41:47][INFO] :List of tables involved in update statement :
+                              #lt_calculation_temp c 
+                              			left join [ams].[iw_cluster_st] cst on   (c.congestion_zone_cd=cst.zone and c.weather_station=cst.weather_station and c.cluster_cd=cst.cluster_cd and c.forecast_dt=cst.forecast_dt and c.hour_num=cst.hour_num)
+                              			left join [ams].[iw_cluster_normal] cn on (c.congestion_zone_cd=cn.zone and c.weather_station=cn.weather_station and c.cluster_cd=cn.cluster_cd   and c.forecast_dt=cn.forecast_dt and c.hour_num=cn.hour_num)
+[09/05/2019 15:41:47][INFO] :Table name that will be updated :
+                              #lt_calculation_temp
+[09/05/2019 15:41:47][INFO] :Statements preset after 'WHERE Clause:
+                              
+[09/05/2019 15:41:47][INFO] :Subtract SQL Statement :
+                              select c.* 
+                               from #lt_calculation_temp c 
+                              			left join [ams].[iw_cluster_st] cst on   (c.congestion_zone_cd=cst.zone and c.weather_station=cst.weather_station and c.cluster_cd=cst.cluster_cd and c.forecast_dt=cst.forecast_dt and c.hour_num=cst.hour_num)
+                              			left join [ams].[iw_cluster_normal] cn on (c.congestion_zone_cd=cn.zone and c.weather_station=cn.weather_station and c.cluster_cd=cn.cluster_cd   and c.forecast_dt=cn.forecast_dt and c.hour_num=cn.hour_num)
+[09/05/2019 15:41:47][INFO] :Columns Splitting begins 
+[09/05/2019 15:41:47][INFO] :Splitting Completed 
+[09/05/2019 15:41:47][INFO] :Update SQL Statement :
+                              "select " + df_col_list_str + """from #lt_cal__dfculation_temp c 
+                              			left join ams__iw_cluster_st__df cst on   (c.congestion_zone_cd=cst.zone and c.weather_station=cst.weather_station and c.cluster_cd=cst.cluster_cd and c.forecast_dt=cst.forecast_dt and c.hour_num=cst.hour_num)
+                              			left join ams__iw_cluster_normal__df cn on (c.congestion_zone_cd=cn.zone and c.weather_station=cn.weather_station and c.cluster_cd=cn.cluster_cd   and c.forecast_dt=cn.forecast_dt and c.hour_num=cn.hour_num)"""
+[09/05/2019 15:41:47][INFO] :Update Statement Conversion Completed Successfully
+[09/05/2019 15:41:47][INFO] :Statement parse completed.
+[09/05/2019 15:41:47][INFO] :Update Statement conversion started
+[09/05/2019 15:41:47][INFO] :Table alias name to be referenced :
+                              c
+[09/05/2019 15:41:47][INFO] :Statement after 'SET' clause :
+                              distrib_loss_load=IFNULL(unadj_load*dhl.distrib_loss_pct,0)
+                              			from #lt_calculation_temp c 
+                              			left join [ams].[iw_distr_hourly_loss] dhl on (c.market_cd=dhl.market_cd and c.utility_cd=dhl.utility_cd and c.loss_cd=dhl.loss_cd and c.forecast_dt=dhl.forecast_dt and c.hour_num=dhl.hour_num )
+[09/05/2019 15:41:47][INFO] :Table alias present after the 'SET' clause , indicating possibility of 'FROM' clause  
+[09/05/2019 15:41:47][INFO] :'FROM' clause exists before 'SELECT'
+[09/05/2019 15:41:47][INFO] :Table ALIAS name that will be updated :
+                              c
+[09/05/2019 15:41:47][INFO] :List of tables involved in update statement :
+                              #lt_calculation_temp c 
+                              			left join [ams].[iw_distr_hourly_loss] dhl on (c.market_cd=dhl.market_cd and c.utility_cd=dhl.utility_cd and c.loss_cd=dhl.loss_cd and c.forecast_dt=dhl.forecast_dt and c.hour_num=dhl.hour_num )
+[09/05/2019 15:41:47][INFO] :Table name that will be updated :
+                              #lt_calculation_temp
+[09/05/2019 15:41:47][INFO] :Statements preset after 'WHERE Clause:
+                              
+[09/05/2019 15:41:47][INFO] :Subtract SQL Statement :
+                              select c.* 
+                               from #lt_calculation_temp c 
+                              			left join [ams].[iw_distr_hourly_loss] dhl on (c.market_cd=dhl.market_cd and c.utility_cd=dhl.utility_cd and c.loss_cd=dhl.loss_cd and c.forecast_dt=dhl.forecast_dt and c.hour_num=dhl.hour_num )
+[09/05/2019 15:41:47][INFO] :Columns Splitting begins 
+[09/05/2019 15:41:47][INFO] :Splitting Completed 
+[09/05/2019 15:41:47][INFO] :Update SQL Statement :
+                              "select " + df_col_list_str + """from #lt_cal__dfculation_temp c 
+                              			left join ams__iw_distr_hourly_loss__df dhl on (c.market_cd=dhl.market_cd and c.utility_cd=dhl.utility_cd and c.loss_cd=dhl.loss_cd and c.forecast_dt=dhl.forecast_dt and c.hour_num=dhl.hour_num )"""
+[09/05/2019 15:41:47][INFO] :Update Statement Conversion Completed Successfully
+[09/05/2019 15:41:48][INFO] :Statement parse completed.
+[09/05/2019 15:41:48][INFO] :Update Statement conversion started
+[09/05/2019 15:41:48][INFO] :Table alias name to be referenced :
+                              c
+[09/05/2019 15:41:48][INFO] :Statement after 'SET' clause :
+                              transmission_loss_load =IFNULL((unadj_load*thl.transmission_loss_pct)/100,0)
+                              			from #lt_calculation_temp c 
+                              			left join [ams].[iw_trans_hourly_loss] thl on (c.market_cd=thl.market_cd and c.forecast_dt=thl.forecast_dt and c.hour_num=thl.hour_num)
+[09/05/2019 15:41:48][INFO] :Table alias present after the 'SET' clause , indicating possibility of 'FROM' clause  
+[09/05/2019 15:41:48][INFO] :'FROM' clause exists before 'SELECT'
+[09/05/2019 15:41:48][INFO] :Table ALIAS name that will be updated :
+                              c
+[09/05/2019 15:41:48][INFO] :List of tables involved in update statement :
+                              #lt_calculation_temp c 
+                              			left join [ams].[iw_trans_hourly_loss] thl on (c.market_cd=thl.market_cd and c.forecast_dt=thl.forecast_dt and c.hour_num=thl.hour_num)
+[09/05/2019 15:41:48][INFO] :Table name that will be updated :
+                              #lt_calculation_temp
+[09/05/2019 15:41:48][INFO] :Statements preset after 'WHERE Clause:
+                              
+[09/05/2019 15:41:48][INFO] :Subtract SQL Statement :
+                              select c.* 
+                               from #lt_calculation_temp c 
+                              			left join [ams].[iw_trans_hourly_loss] thl on (c.market_cd=thl.market_cd and c.forecast_dt=thl.forecast_dt and c.hour_num=thl.hour_num)
+[09/05/2019 15:41:48][INFO] :Columns Splitting begins 
+[09/05/2019 15:41:48][INFO] :Splitting Completed 
+[09/05/2019 15:41:48][INFO] :Update SQL Statement :
+                              "select " + df_col_list_str + """from #lt_cal__dfculation_temp c 
+                              			left join ams__iw_trans_hourly_loss__df thl on (c.market_cd=thl.market_cd and c.forecast_dt=thl.forecast_dt and c.hour_num=thl.hour_num)"""
+[09/05/2019 15:41:48][INFO] :Update Statement Conversion Completed Successfully
+[09/05/2019 15:41:48][INFO] :Statement parse completed.
+[09/05/2019 15:41:48][INFO] :Update Statement conversion started
+[09/05/2019 15:41:48][INFO] :Table alias name to be referenced :
+                              c
+[09/05/2019 15:41:48][INFO] :Statement after 'SET' clause :
+                              deration_loss_load =IFNULL((unadj_load*thl.deration_loss_pct*-1)/100,0)
+                              			from #lt_calculation_temp c 
+                              			left join [ams].[iw_deration_hourly_loss] thl on (c.market_cd=thl.market_cd and c.forecast_dt=thl.forecast_dt and c.hour_num=thl.hour_num)
+[09/05/2019 15:41:48][INFO] :Table alias present after the 'SET' clause , indicating possibility of 'FROM' clause  
+[09/05/2019 15:41:48][INFO] :'FROM' clause exists before 'SELECT'
+[09/05/2019 15:41:48][INFO] :Table ALIAS name that will be updated :
+                              c
+[09/05/2019 15:41:48][INFO] :List of tables involved in update statement :
+                              #lt_calculation_temp c 
+                              			left join [ams].[iw_deration_hourly_loss] thl on (c.market_cd=thl.market_cd and c.forecast_dt=thl.forecast_dt and c.hour_num=thl.hour_num)
+[09/05/2019 15:41:48][INFO] :Table name that will be updated :
+                              #lt_calculation_temp
+[09/05/2019 15:41:48][INFO] :Statements preset after 'WHERE Clause:
+                              
+[09/05/2019 15:41:48][INFO] :Subtract SQL Statement :
+                              select c.* 
+                               from #lt_calculation_temp c 
+                              			left join [ams].[iw_deration_hourly_loss] thl on (c.market_cd=thl.market_cd and c.forecast_dt=thl.forecast_dt and c.hour_num=thl.hour_num)
+[09/05/2019 15:41:48][INFO] :Columns Splitting begins 
+[09/05/2019 15:41:48][INFO] :Splitting Completed 
+[09/05/2019 15:41:48][INFO] :Update SQL Statement :
+                              "select " + df_col_list_str + """from #lt_cal__dfculation_temp c 
+                              			left join ams__iw_deration_hourly_loss__df thl on (c.market_cd=thl.market_cd and c.forecast_dt=thl.forecast_dt and c.hour_num=thl.hour_num)"""
+[09/05/2019 15:41:48][INFO] :Update Statement Conversion Completed Successfully
+[09/05/2019 15:41:48][INFO] :Processing SELECT statement to poplate #defaulttags
+[09/05/2019 15:41:52][INFO] :avg Function call is same in Target language, hence not converted.
+                              avg(cast(capacity_plc_tag as float)/1000)
+[09/05/2019 15:41:52][INFO] :avg Function call is same in Target language, hence not converted.
+                              avg(cast(transmis_plc_tag as float)/1000)
+[09/05/2019 15:41:52][INFO] :avg Function call is same in Target language, hence not converted.
+                              avg(cast(capacity_plc_tag as float)/1000)
+[09/05/2019 15:41:52][INFO] :Statement parse completed.
+[09/05/2019 15:41:53][INFO] :Statement parse completed.
+[09/05/2019 15:41:53][INFO] :Update Statement conversion started
+[09/05/2019 15:41:53][INFO] :Table alias name to be referenced :
+                              c
+[09/05/2019 15:41:53][INFO] :Statement after 'SET' clause :
+                              cap_ob = (IFNULL(capacity_tag_avg ,0) ) , 
+                              			tran_ob = (IFNULL(tranmission_tag_avg ,0) )
+                              			from #lt_calculation_temp c 
+                              			inner join #defaulttags  a on 
+                              			a.utility_cd=c.utility_cd and a.load_profile_cd=c.load_profile_cd
+                              			 and a.congestion_zone_cd=c.congestion_zone_cd and a.market_cd = c.market_cd
+[09/05/2019 15:41:53][INFO] :Table alias present after the 'SET' clause , indicating possibility of 'FROM' clause  
+[09/05/2019 15:41:53][INFO] :'FROM' clause exists before 'SELECT'
+[09/05/2019 15:41:53][INFO] :Table ALIAS name that will be updated :
+                              c
+[09/05/2019 15:41:53][INFO] :List of tables involved in update statement :
+                              #lt_calculation_temp c 
+                              			inner join #defaulttags  a on 
+                              			a.utility_cd=c.utility_cd and a.load_profile_cd=c.load_profile_cd
+                              			 and a.congestion_zone_cd=c.congestion_zone_cd and a.market_cd = c.market_cd
+[09/05/2019 15:41:53][INFO] :Table name that will be updated :
+                              #lt_calculation_temp
+[09/05/2019 15:41:53][INFO] :Statements preset after 'WHERE Clause:
+                              
+[09/05/2019 15:41:53][INFO] :Subtract SQL Statement :
+                              select c.* 
+                               from #lt_calculation_temp c 
+                              			inner join #defaulttags  a on 
+                              			a.utility_cd=c.utility_cd and a.load_profile_cd=c.load_profile_cd
+                              			 and a.congestion_zone_cd=c.congestion_zone_cd and a.market_cd = c.market_cd
+[09/05/2019 15:41:53][INFO] :Columns Splitting begins 
+[09/05/2019 15:41:53][INFO] :Splitting Completed 
+[09/05/2019 15:41:53][INFO] :Update SQL Statement :
+                              "select " + df_col_list_str + """from #lt_cal__dfculation_temp c 
+                              			inner join #defaulttags  a on 
+                              			a.utility_cd=c.utility_cd and a.load_profile_cd=c.load_profile_cd
+                              			 and a.congestion_zone_cd=c.congestion_zone_cd and a.market_cd = c.market_cd"""
+[09/05/2019 15:41:53][INFO] :Update Statement Conversion Completed Successfully
+[09/05/2019 15:41:53][INFO] :Processing WITH clause Statement for cte
+[09/05/2019 15:42:00][INFO] :year Function call is same in Target language, hence not converted.
+                              year(t.date)
+[09/05/2019 15:42:00][INFO] :month Function call is same in Target language, hence not converted.
+                              month(t.date)
+[09/05/2019 15:42:00][INFO] :sum Function call is same in Target language, hence not converted.
+                              sum(distinct esiid_cnt_cal)
+[09/05/2019 15:42:00][INFO] :year Function call is same in Target language, hence not converted.
+                              year(date)
+[09/05/2019 15:42:00][INFO] :month Function call is same in Target language, hence not converted.
+                              month(date)
+[09/05/2019 15:42:00][INFO] :Statement parse completed.
+[09/05/2019 15:42:03][INFO] :sum Function call is same in Target language, hence not converted.
+                              sum(cnt)
+[09/05/2019 15:42:03][INFO] :Statement parse completed.
+[09/05/2019 15:42:03][INFO] :Converting INSERT INTO statement by SELECT. Inserting into #tempessiid
+[09/05/2019 15:42:03][INFO] :Processing WITH clause Statement for lt_cal
+[09/05/2019 15:42:10][INFO] :sum Function call is same in Target language, hence not converted.
+                              sum(unadj_load)
+[09/05/2019 15:42:10][INFO] :sum Function call is same in Target language, hence not converted.
+                              sum(distrib_loss_load)
+[09/05/2019 15:42:10][INFO] :sum Function call is same in Target language, hence not converted.
+                              sum(transmission_loss_load)
+[09/05/2019 15:42:10][INFO] :sum Function call is same in Target language, hence not converted.
+                              sum(ufe_loss_load)
+[09/05/2019 15:42:10][INFO] :sum Function call is same in Target language, hence not converted.
+                              sum(ancillary_loss_load)
+[09/05/2019 15:42:10][INFO] :sum Function call is same in Target language, hence not converted.
+                              sum(deration_loss_load)
+[09/05/2019 15:42:10][ERROR]:cast Function could not be converted. Consider manual reconstruction.
+                              cast(cap_ob as numeric(10,6))
+[09/05/2019 15:42:10][INFO] :max Function call is same in Target language, hence not converted.
+                              max(cast(cap_ob as numeric(10,6)))
+[09/05/2019 15:42:10][ERROR]:cast Function could not be converted. Consider manual reconstruction.
+                              cast(tran_ob as numeric(10,6))
+[09/05/2019 15:42:10][INFO] :max Function call is same in Target language, hence not converted.
+                              max(cast(tran_ob as numeric(10,6)))
+[09/05/2019 15:42:10][INFO] :Statement parse completed.
+[09/05/2019 15:42:10][WARN] :Check if + operator used for string concatination or date arithmetic.
+                              component_type_cd,temp_band_cd,source_cd, 
+                              			cast(cast(month(forecast_dt) as varchar)+'
+                              '+cast(year(forecast_dt)as varchar) as date) forecast_date ,block_12x12_desc,usage_factor,
+                              			sum(l
+                              cast(cast(month(forecast_dt) as varchar)+'
+                              '+cast(year(forecast_dt)as varchar) as date) and t
+[09/05/2019 15:42:10][INFO] :Checking for hard coded string and converting to string contination operator '||'
+[09/05/2019 15:42:21][INFO] :month Function call is same in Target language, hence not converted.
+                              month(forecast_dt)
+[09/05/2019 15:42:21][INFO] :year Function call is same in Target language, hence not converted.
+                              year(forecast_dt)
+[09/05/2019 15:42:21][INFO] :sum Function call is same in Target language, hence not converted.
+                              sum(l.unadj_load)
+[09/05/2019 15:42:21][INFO] :sum Function call is same in Target language, hence not converted.
+                              sum(l.distrib_loss_load)
+[09/05/2019 15:42:21][INFO] :sum Function call is same in Target language, hence not converted.
+                              sum(l.transmission_loss_load)
+[09/05/2019 15:42:21][INFO] :sum Function call is same in Target language, hence not converted.
+                              sum(l.ufe_loss_load)
+[09/05/2019 15:42:21][INFO] :sum Function call is same in Target language, hence not converted.
+                              sum(l.ancillary_loss_load)
+[09/05/2019 15:42:21][INFO] :sum Function call is same in Target language, hence not converted.
+                              sum(l.deration_loss_load)
+[09/05/2019 15:42:21][INFO] :max Function call is same in Target language, hence not converted.
+                              max(l.cap_ob)
+[09/05/2019 15:42:21][INFO] :max Function call is same in Target language, hence not converted.
+                              max(l.tran_ob)
+[09/05/2019 15:42:21][INFO] :month Function call is same in Target language, hence not converted.
+                              month(forecast_dt)
+[09/05/2019 15:42:21][INFO] :year Function call is same in Target language, hence not converted.
+                              year(forecast_dt)
+[09/05/2019 15:42:21][INFO] :month Function call is same in Target language, hence not converted.
+                              month(forecast_dt)
+[09/05/2019 15:42:21][INFO] :year Function call is same in Target language, hence not converted.
+                              year(forecast_dt)
+[09/05/2019 15:42:21][INFO] :Statement parse completed.
+[09/05/2019 15:42:21][INFO] :Converting INSERT INTO statement by SELECT. Inserting into ams.iw_growth_lt_12x12
+[09/05/2019 15:42:21][ERROR]:Error occurred while converting below INSERT statement,
+                              insert into ams.iw_growth_lt_12x12 (market_cd, tou_schedule_type_cd, ufe_zone_cd, weather_sensitivity_cd, load_profile_cd, forecast_profile_cd,
+                              				weather_zone_cd, meter_type_cd, book_cd, lse_cd, loss_cd, utility_cd, congestion_zone_cd,prov_state_cd, product_type_cd, component_type_cd, 
+                              				temp_band_cd, source_cd,forecast_month, block_12x12_desc, usage_factor, unadj_load, esiid_cnt, distrib_loss_load, transmission_loss_load,
+                              				ufe_loss_load, ancillary_loss_load, deration_loss_load, cap_ob, tran_ob, crdt, batch_dt, batch_hr)
+                              			select l.market_cd,l.tou_schedule_type_cd,l.ufe_zone_cd,l.weather_sensitivity_cd,l.load_profile_cd,l.forecast_profile_cd,
+                              			l.weather_zone_cd,l.meter_type_cd,l.book_cd,l.lse_cd,
+                              			l.loss_cd,l.utility_cd,l.congestion_zone_cd,l.prov_state_cd,l.product_type_cd,l.component_type_cd,temp_band_cd,source_cd, 
+                              			cast(cast(month(forecast_dt) as varchar)+'/01/'+cast(year(forecast_dt)as varchar) as date) forecast_date ,block_12x12_desc,usage_factor,
+                              			sum(l.unadj_load) unadj_load,t.esiidcnt,sum(l.distrib_loss_load) distrib_loss_load ,sum(l.transmission_loss_load) transmission_loss_load,
+                              			sum(l.ufe_loss_load) ufe_loss_load,sum(l.ancillary_loss_load) ancillary_loss_load,sum(l.deration_loss_load) deration_loss_load,
+                              			(max(l.cap_ob)* esiidcnt) cap_ob,(max(l.tran_ob) * esiidcnt) tran_ob ,crdt,batch_dt,batch_hr
+                              			from lt_cal l 
+                              			inner join #tempessiid t  on  (t.edate=cast(cast(month(forecast_dt) as varchar)+'/01/'+cast(year(forecast_dt)as varchar) as date) and t.load_profile_cd=l.load_profile_cd
+                              											and l.cluster_cd=t.cluster_cd and l.loss_cd=t.loss_cd and l.utility_cd=t.utility_cd
+                              											and l.weather_zone_cd=t.weather_zone_cd and l.weather_station=t.weather_station
+                              											and l.congestion_zone_cd =t.congestion_zone_cd and l.product_type_cd=t.product_type_cd and l.component_type_cd=t.component_type_cd
+                              											and l.book_cd=t.book_cd and l.lse_cd=t.lse_cd 
+                              											)
+                              			where unadj_load >0
+                              			group by 
+                              			 l.market_cd,l.tou_schedule_type_cd,l.ufe_zone_cd,l.weather_sensitivity_cd,l.load_profile_cd,forecast_profile_cd,
+                              			 l.weather_zone_cd,l.meter_type_cd,l.book_cd,l.lse_cd,l.loss_cd,l.utility_cd,l.congestion_zone_cd,
+                              			 l.prov_state_cd,l.product_type_cd,l.component_type_cd ,temp_band_cd,source_cd, month(forecast_dt),year(forecast_dt),block_12x12_desc,ufe_loss_load,usage_factor,
+                              			 crdt,batch_dt,batch_hr,t.esiidcnt
+                              list index out of range
+[09/05/2019 15:42:21][INFO] :Converting IF condition statement
+[09/05/2019 15:42:21][INFO] :Converting IF condition statement
+[09/05/2019 15:42:21][INFO] :Modified below conditinal expression from
+                              (imode=2)
+                              to
+                              (imode==2)
+[09/05/2019 15:42:21][INFO] :Converting truncate statement to DELETE statement
+                              truncate table ams.iw_growth_stnorm_hourly
+                              to
+                              DELETE FROM ams.iw_growth_stnorm_hourly
+[09/05/2019 15:42:21][INFO] :Statement parse completed.
+[09/05/2019 15:42:21][INFO] :Converting DELETE statement on ams.iw_growth_stnorm_hourly
+[09/05/2019 15:42:21][INFO] :Processing DECLARE variable statement
+[09/05/2019 15:42:21][INFO] :Converting declare statement for cursor st_loop
+[09/05/2019 15:42:21][INFO] :Script contect parse completed.
+[09/05/2019 15:42:21][INFO] :Converting open statemennt for cursor st_loop
+[09/05/2019 15:42:21][INFO] :Converting fetch statemennt on cursor st_loop
+[09/05/2019 15:42:21][INFO] :Converting WHILE statement
+[09/05/2019 15:42:21][INFO] :Modified below conditinal expression from
+                              fetch_status = 0
+                              to
+                              fetch_status == 0
+[09/05/2019 15:42:21][INFO] :Processing WITH clause Statement for st_calculation
+[09/05/2019 15:42:26][INFO] :Statement parse completed.
+[09/05/2019 15:42:26][INFO] :Replacing variables found in statement @id,@dtnow,@ltusnstartdate
+[09/05/2019 15:42:26][WARN] :CROSS/OUTER APPLY not in conversion scope
+                              outer apply (
+                              						select hb_date,h.hour_ending,h.block_12x12_desc  from ams.iw_hourly_breakout h 
+                              
+[09/05/2019 15:42:31][WARN] :concat Function is not covered in scope and has been kept AS IS in target code. Consider manual reconstruction if necessary.
+                              concat([load_profile_cd],'_',[weather_zone_cd])
+[09/05/2019 15:42:31][WARN] :Using default date format 'MM/dd/yyyy' as it is not specified. Consider rewriting function if necessary.
+                              to_date(h.hb_date,'MM/dd/yyyy')
+[09/05/2019 15:42:31][WARN] :Using default date format 'MM/dd/yyyy' as it is not specified. Consider rewriting function if necessary.
+                              to_date(@iflow_start_dt,'MM/dd/yyyy')
+[09/05/2019 15:42:31][WARN] :Using default date format 'MM/dd/yyyy' as it is not specified. Consider rewriting function if necessary.
+                              to_date(h.hb_date,'MM/dd/yyyy')
+[09/05/2019 15:42:31][WARN] :Using default date format 'MM/dd/yyyy' as it is not specified. Consider rewriting function if necessary.
+                              to_date(@iflow_stop_dt,'MM/dd/yyyy')
+[09/05/2019 15:42:31][INFO] :Statement parse completed.
+[09/05/2019 15:42:31][INFO] :Converting INSERT INTO statement by SELECT. Inserting into #st_calculation_temp
+[09/05/2019 15:42:31][INFO] :Replacing variables found in statement @id,@iflow_start_dt,@stenddate,@iflow_stop_dt,@ststartdate
+[09/05/2019 15:42:31][INFO] :Converting fetch statemennt on cursor st_loop
+[09/05/2019 15:42:31][INFO] :Converting WHILE statement
+[09/05/2019 15:42:39][INFO] :max Function call is same in Target language, hence not converted.
+                              max(batch_dt)
+[09/05/2019 15:42:39][INFO] :Statement parse completed.
+[09/05/2019 15:42:39][INFO] :Update Statement conversion started
+[09/05/2019 15:42:39][INFO] :Table alias name to be referenced :
+                              c
+[09/05/2019 15:42:39][INFO] :Statement after 'SET' clause :
+                              unadj_load=IFNULL((c.esiid_cnt*isnull(cst.load,cn.load)/1000),0) 
+                              			from #st_calculation_temp c 
+                              			left join( select cst.zone, cst.weather_station,cst.cluster_cd,cst.forecast_dt,cst.hour_num,cst.load
+                              						 from  [ams].[iw_cluster_st] cst 
+                              						 inner join (
+                              						    select cs.zone, cs.weather_station,cs.cluster_cd,cs.forecast_dt,cs.hour_num ,max(batch_dt) batchdate
+                              							 from [ams].[iw_cluster_st] cs
+                              							 group by 
+                              							cs.zone, cs.weather_station,cs.cluster_cd,cs.forecast_dt,cs.hour_num
+                              							) t on cst.zone = t.zone and t.weather_station=cst.weather_station and cst.cluster_cd=t.cluster_cd and cst.forecast_dt=t.forecast_dt and cst.hour_num=t.hour_num and t.batchdate=cst.batch_dt
+                              						) cst on   (c.congestion_zone_cd=cst.zone and c.weather_station=cst.weather_station and c.cluster_cd=cst.cluster_cd and c.forecast_dt=cst.forecast_dt and c.hour_num=cst.hour_num)
+                              			left join [ams].[iw_cluster_normal] cn on (c.congestion_zone_cd=cn.zone and c.weather_station=cn.weather_station and c.cluster_cd=cn.cluster_cd   and c.forecast_dt=cn.forecast_dt and c.hour_num=cn.hour_num)
+[09/05/2019 15:42:39][INFO] :Table alias present after the 'SET' clause , indicating possibility of 'FROM' clause  
+[09/05/2019 15:42:39][INFO] :'FROM' clause exists before 'SELECT'
+[09/05/2019 15:42:39][INFO] :Table ALIAS name that will be updated :
+                              c
+[09/05/2019 15:42:39][INFO] :List of tables involved in update statement :
+                              #st_calculation_temp c 
+                              			left join( select cst.zone, cst.weather_station,cst.cluster_cd,cst.forecast_dt,cst.hour_num,cst.load
+                              						 from  [ams].[iw_cluster_st] cst 
+                              						 inner join (
+                              						    select cs.zone, cs.weather_station,cs.cluster_cd,cs.forecast_dt,cs.hour_num ,max(batch_dt) batchdate
+                              							 from [ams].[iw_cluster_st] cs
+                              							 group by 
+                              							cs.zone, cs.weather_station,cs.cluster_cd,cs.forecast_dt,cs.hour_num
+                              							) t on cst.zone = t.zone and t.weather_station=cst.weather_station and cst.cluster_cd=t.cluster_cd and cst.forecast_dt=t.forecast_dt and cst.hour_num=t.hour_num and t.batchdate=cst.batch_dt
+                              						) cst on   (c.congestion_zone_cd=cst.zone and c.weather_station=cst.weather_station and c.cluster_cd=cst.cluster_cd and c.forecast_dt=cst.forecast_dt and c.hour_num=cst.hour_num)
+                              			left join [ams].[iw_cluster_normal] cn on (c.congestion_zone_cd=cn.zone and c.weather_station=cn.weather_station and c.cluster_cd=cn.cluster_cd   and c.forecast_dt=cn.forecast_dt and c.hour_num=cn.hour_num)
+[09/05/2019 15:42:39][INFO] :Table name that will be updated :
+                              #st_calculation_temp
+[09/05/2019 15:42:39][INFO] :Statements preset after 'WHERE Clause:
+                              
+[09/05/2019 15:42:39][INFO] :Subtract SQL Statement :
+                              select c.* 
+                               from #st_calculation_temp c 
+                              			left join( select cst.zone, cst.weather_station,cst.cluster_cd,cst.forecast_dt,cst.hour_num,cst.load
+                              						 from  [ams].[iw_cluster_st] cst 
+                              						 inner join (
+                              						    select cs.zone, cs.weather_station,cs.cluster_cd,cs.forecast_dt,cs.hour_num ,max(batch_dt) batchdate
+                              							 from [ams].[iw_cluster_st] cs
+                              							 group by 
+                              							cs.zone, cs.weather_station,cs.cluster_cd,cs.forecast_dt,cs.hour_num
+                              							) t on cst.zone = t.zone and t.weather_station=cst.weather_station and cst.cluster_cd=t.cluster_cd and cst.forecast_dt=t.forecast_dt and cst.hour_num=t.hour_num and t.batchdate=cst.batch_dt
+                              						) cst on   (c.congestion_zone_cd=cst.zone and c.weather_station=cst.weather_station and c.cluster_cd=cst.cluster_cd and c.forecast_dt=cst.forecast_dt and c.hour_num=cst.hour_num)
+                              			left join [ams].[iw_cluster_normal] cn on (c.congestion_zone_cd=cn.zone and c.weather_station=cn.weather_station and c.cluster_cd=cn.cluster_cd   and c.forecast_dt=cn.forecast_dt and c.hour_num=cn.hour_num)
+[09/05/2019 15:42:39][INFO] :Columns Splitting begins 
+[09/05/2019 15:42:39][INFO] :Splitting Completed 
+[09/05/2019 15:42:39][INFO] :Update SQL Statement :
+                              "select " + df_col_list_str + """from #st_calculation__df_temp c 
+                              			left join( select cst.zone, cst.weather_station,cst.cluster_cd,cst.forecast_dt,cst.hour_num,cst.load
+                              						 from  ams__iw_cluster_st__df cst 
+                              						 inner join (
+                              						    select cs.zone, cs.weather_station,cs.cluster_cd,cs.forecast_dt,cs.hour_num ,max(batch_dt) batchdate
+                              							 from ams__iw_cluster_st__df cs
+                              							 group by 
+                              							cs.zone, cs.weather_station,cs.cluster_cd,cs.forecast_dt,cs.hour_num
+                              							) t on cst.zone = t.zone and t.weather_station=cst.weather_station and cst.cluster_cd=t.cluster_cd and cst.forecast_dt=t.forecast_dt and cst.hour_num=t.hour_num and t.batchdate=cst.batch_dt
+                              						) cst on   (c.congestion_zone_cd=cst.zone and c.weather_station=cst.weather_station and c.cluster_cd=cst.cluster_cd and c.forecast_dt=cst.forecast_dt and c.hour_num=cst.hour_num)
+                              			left join ams__iw_cluster_normal__df cn on (c.congestion_zone_cd=cn.zone and c.weather_station=cn.weather_station and c.cluster_cd=cn.cluster_cd   and c.forecast_dt=cn.forecast_dt and c.hour_num=cn.hour_num)"""
+[09/05/2019 15:42:39][INFO] :Update Statement Conversion Completed Successfully
+[09/05/2019 15:42:39][INFO] :Statement parse completed.
+[09/05/2019 15:42:39][INFO] :Update Statement conversion started
+[09/05/2019 15:42:39][INFO] :Table alias name to be referenced :
+                              c
+[09/05/2019 15:42:39][INFO] :Statement after 'SET' clause :
+                              distrib_loss_load=IFNULL(unadj_load*dhl.distrib_loss_pct,0)
+                              			from #st_calculation_temp c 
+                              			left join [ams].[iw_distr_hourly_loss] dhl on (c.market_cd=dhl.market_cd and c.utility_cd=dhl.utility_cd and c.loss_cd=dhl.loss_cd and c.forecast_dt=dhl.forecast_dt and c.hour_num=dhl.hour_num )
+[09/05/2019 15:42:39][INFO] :Table alias present after the 'SET' clause , indicating possibility of 'FROM' clause  
+[09/05/2019 15:42:39][INFO] :'FROM' clause exists before 'SELECT'
+[09/05/2019 15:42:39][INFO] :Table ALIAS name that will be updated :
+                              c
+[09/05/2019 15:42:39][INFO] :List of tables involved in update statement :
+                              #st_calculation_temp c 
+                              			left join [ams].[iw_distr_hourly_loss] dhl on (c.market_cd=dhl.market_cd and c.utility_cd=dhl.utility_cd and c.loss_cd=dhl.loss_cd and c.forecast_dt=dhl.forecast_dt and c.hour_num=dhl.hour_num )
+[09/05/2019 15:42:39][INFO] :Table name that will be updated :
+                              #st_calculation_temp
+[09/05/2019 15:42:39][INFO] :Statements preset after 'WHERE Clause:
+                              
+[09/05/2019 15:42:39][INFO] :Subtract SQL Statement :
+                              select c.* 
+                               from #st_calculation_temp c 
+                              			left join [ams].[iw_distr_hourly_loss] dhl on (c.market_cd=dhl.market_cd and c.utility_cd=dhl.utility_cd and c.loss_cd=dhl.loss_cd and c.forecast_dt=dhl.forecast_dt and c.hour_num=dhl.hour_num )
+[09/05/2019 15:42:39][INFO] :Columns Splitting begins 
+[09/05/2019 15:42:39][INFO] :Splitting Completed 
+[09/05/2019 15:42:39][INFO] :Update SQL Statement :
+                              "select " + df_col_list_str + """from #st_calculation__df_temp c 
+                              			left join ams__iw_distr_hourly_loss__df dhl on (c.market_cd=dhl.market_cd and c.utility_cd=dhl.utility_cd and c.loss_cd=dhl.loss_cd and c.forecast_dt=dhl.forecast_dt and c.hour_num=dhl.hour_num )"""
+[09/05/2019 15:42:39][INFO] :Update Statement Conversion Completed Successfully
+[09/05/2019 15:42:40][INFO] :Statement parse completed.
+[09/05/2019 15:42:40][INFO] :Update Statement conversion started
+[09/05/2019 15:42:40][INFO] :Table alias name to be referenced :
+                              c
+[09/05/2019 15:42:40][INFO] :Statement after 'SET' clause :
+                              transmission_loss_load =IFNULL((unadj_load*thl.transmission_loss_pct)/100,0)
+                              			from #st_calculation_temp c 
+                              			left join [ams].[iw_trans_hourly_loss] thl on (c.market_cd=thl.market_cd and c.forecast_dt=thl.forecast_dt and c.hour_num=thl.hour_num)
+[09/05/2019 15:42:40][INFO] :Table alias present after the 'SET' clause , indicating possibility of 'FROM' clause  
+[09/05/2019 15:42:40][INFO] :'FROM' clause exists before 'SELECT'
+[09/05/2019 15:42:40][INFO] :Table ALIAS name that will be updated :
+                              c
+[09/05/2019 15:42:40][INFO] :List of tables involved in update statement :
+                              #st_calculation_temp c 
+                              			left join [ams].[iw_trans_hourly_loss] thl on (c.market_cd=thl.market_cd and c.forecast_dt=thl.forecast_dt and c.hour_num=thl.hour_num)
+[09/05/2019 15:42:40][INFO] :Table name that will be updated :
+                              #st_calculation_temp
+[09/05/2019 15:42:40][INFO] :Statements preset after 'WHERE Clause:
+                              
+[09/05/2019 15:42:40][INFO] :Subtract SQL Statement :
+                              select c.* 
+                               from #st_calculation_temp c 
+                              			left join [ams].[iw_trans_hourly_loss] thl on (c.market_cd=thl.market_cd and c.forecast_dt=thl.forecast_dt and c.hour_num=thl.hour_num)
+[09/05/2019 15:42:40][INFO] :Columns Splitting begins 
+[09/05/2019 15:42:40][INFO] :Splitting Completed 
+[09/05/2019 15:42:40][INFO] :Update SQL Statement :
+                              "select " + df_col_list_str + """from #st_calculation__df_temp c 
+                              			left join ams__iw_trans_hourly_loss__df thl on (c.market_cd=thl.market_cd and c.forecast_dt=thl.forecast_dt and c.hour_num=thl.hour_num)"""
+[09/05/2019 15:42:40][INFO] :Update Statement Conversion Completed Successfully
+[09/05/2019 15:42:41][INFO] :Statement parse completed.
+[09/05/2019 15:42:41][INFO] :Update Statement conversion started
+[09/05/2019 15:42:41][INFO] :Table alias name to be referenced :
+                              c
+[09/05/2019 15:42:41][INFO] :Statement after 'SET' clause :
+                              deration_loss_load =IFNULL((unadj_load*thl.deration_loss_pct*-1)/100,0)
+                              			from #st_calculation_temp c 
+                              			left join [ams].[iw_deration_hourly_loss] thl on (c.market_cd=thl.market_cd and c.forecast_dt=thl.forecast_dt and c.hour_num=thl.hour_num)
+[09/05/2019 15:42:41][INFO] :Table alias present after the 'SET' clause , indicating possibility of 'FROM' clause  
+[09/05/2019 15:42:41][INFO] :'FROM' clause exists before 'SELECT'
+[09/05/2019 15:42:41][INFO] :Table ALIAS name that will be updated :
+                              c
+[09/05/2019 15:42:41][INFO] :List of tables involved in update statement :
+                              #st_calculation_temp c 
+                              			left join [ams].[iw_deration_hourly_loss] thl on (c.market_cd=thl.market_cd and c.forecast_dt=thl.forecast_dt and c.hour_num=thl.hour_num)
+[09/05/2019 15:42:41][INFO] :Table name that will be updated :
+                              #st_calculation_temp
+[09/05/2019 15:42:41][INFO] :Statements preset after 'WHERE Clause:
+                              
+[09/05/2019 15:42:41][INFO] :Subtract SQL Statement :
+                              select c.* 
+                               from #st_calculation_temp c 
+                              			left join [ams].[iw_deration_hourly_loss] thl on (c.market_cd=thl.market_cd and c.forecast_dt=thl.forecast_dt and c.hour_num=thl.hour_num)
+[09/05/2019 15:42:41][INFO] :Columns Splitting begins 
+[09/05/2019 15:42:41][INFO] :Splitting Completed 
+[09/05/2019 15:42:41][INFO] :Update SQL Statement :
+                              "select " + df_col_list_str + """from #st_calculation__df_temp c 
+                              			left join ams__iw_deration_hourly_loss__df thl on (c.market_cd=thl.market_cd and c.forecast_dt=thl.forecast_dt and c.hour_num=thl.hour_num)"""
+[09/05/2019 15:42:41][INFO] :Update Statement Conversion Completed Successfully
+[09/05/2019 15:42:41][INFO] :Processing SELECT statement to poplate #defaulttags2
+[09/05/2019 15:42:42][INFO] :avg Function call is same in Target language, hence not converted.
+                              avg(cast(capacity_plc_tag as float)/1000)
+[09/05/2019 15:42:42][INFO] :avg Function call is same in Target language, hence not converted.
+                              avg(cast(transmis_plc_tag as float)/1000)
+[09/05/2019 15:42:42][INFO] :avg Function call is same in Target language, hence not converted.
+                              avg(cast(capacity_plc_tag as float)/1000)
+[09/05/2019 15:42:42][INFO] :Statement parse completed.
+[09/05/2019 15:42:42][INFO] :Statement parse completed.
+[09/05/2019 15:42:42][INFO] :Update Statement conversion started
+[09/05/2019 15:42:42][INFO] :Table alias name to be referenced :
+                              c
+[09/05/2019 15:42:42][INFO] :Statement after 'SET' clause :
+                              cap_ob = (IFNULL(capacity_tag_avg ,0) ) , tran_ob = (IFNULL(tranmission_tag_avg ,0) )
+                              			from #st_calculation_temp c 
+                              			inner join #defaulttags2  a on 
+                              			a.utility_cd=c.utility_cd and a.load_profile_cd=c.load_profile_cd and a.congestion_zone_cd=c.congestion_zone_cd
+[09/05/2019 15:42:42][INFO] :Table alias present after the 'SET' clause , indicating possibility of 'FROM' clause  
+[09/05/2019 15:42:42][INFO] :'FROM' clause exists before 'SELECT'
+[09/05/2019 15:42:42][INFO] :Table ALIAS name that will be updated :
+                              c
+[09/05/2019 15:42:42][INFO] :List of tables involved in update statement :
+                              #st_calculation_temp c 
+                              			inner join #defaulttags2  a on 
+                              			a.utility_cd=c.utility_cd and a.load_profile_cd=c.load_profile_cd and a.congestion_zone_cd=c.congestion_zone_cd
+[09/05/2019 15:42:42][INFO] :Table name that will be updated :
+                              #st_calculation_temp
+[09/05/2019 15:42:42][INFO] :Statements preset after 'WHERE Clause:
+                              
+[09/05/2019 15:42:42][INFO] :Subtract SQL Statement :
+                              select c.* 
+                               from #st_calculation_temp c 
+                              			inner join #defaulttags2  a on 
+                              			a.utility_cd=c.utility_cd and a.load_profile_cd=c.load_profile_cd and a.congestion_zone_cd=c.congestion_zone_cd
+[09/05/2019 15:42:42][INFO] :Columns Splitting begins 
+[09/05/2019 15:42:42][INFO] :Splitting Completed 
+[09/05/2019 15:42:42][INFO] :Update SQL Statement :
+                              "select " + df_col_list_str + """from #st_calculation__df_temp c 
+                              			inner join #defaulttags2  a on 
+                              			a.utility_cd=c.utility_cd and a.load_profile_cd=c.load_profile_cd and a.congestion_zone_cd=c.congestion_zone_cd"""
+[09/05/2019 15:42:42][INFO] :Update Statement Conversion Completed Successfully
+[09/05/2019 15:42:42][INFO] :Processing WITH clause Statement for cte
+[09/05/2019 15:42:48][WARN] :concat Function is not covered in scope and has been kept AS IS in target code. Consider manual reconstruction if necessary.
+                              concat([load_profile_cd],'_',[weather_zone_cd])
+[09/05/2019 15:42:48][INFO] :sum Function call is same in Target language, hence not converted.
+                              sum(esiid_cnt)
+[09/05/2019 15:42:48][INFO] :sum Function call is same in Target language, hence not converted.
+                              sum(unadj_load)
+[09/05/2019 15:42:48][INFO] :sum Function call is same in Target language, hence not converted.
+                              sum(distrib_loss_load)
+[09/05/2019 15:42:48][INFO] :sum Function call is same in Target language, hence not converted.
+                              sum(transmission_loss_load)
+[09/05/2019 15:42:48][INFO] :sum Function call is same in Target language, hence not converted.
+                              sum(ufe_loss_load)
+[09/05/2019 15:42:48][INFO] :sum Function call is same in Target language, hence not converted.
+                              sum(ancillary_loss_load)
+[09/05/2019 15:42:48][INFO] :sum Function call is same in Target language, hence not converted.
+                              sum(deration_loss_load)
+[09/05/2019 15:42:48][ERROR]:cast Function could not be converted. Consider manual reconstruction.
+                              cast(cap_ob as numeric(10,6))
+[09/05/2019 15:42:48][INFO] :max Function call is same in Target language, hence not converted.
+                              max(cast(cap_ob as numeric(10,6)))
+[09/05/2019 15:42:48][ERROR]:cast Function could not be converted. Consider manual reconstruction.
+                              cast(tran_ob as numeric(10,6))
+[09/05/2019 15:42:48][INFO] :max Function call is same in Target language, hence not converted.
+                              max(cast(tran_ob as numeric(10,6)))
+[09/05/2019 15:42:48][INFO] :Statement parse completed.
+[09/05/2019 15:42:52][WARN] :Using default date format 'MM/dd/yyyy' as it is not specified. Consider rewriting function if necessary.
+                              to_date(forecast_dt,'MM/dd/yyyy')
+[09/05/2019 15:42:52][WARN] :Using default date format 'MM/dd/yyyy' as it is not specified. Consider rewriting function if necessary.
+                              to_date(getdate(),'MM/dd/yyyy')
+[09/05/2019 15:42:52][WARN] :Using default date format 'MM/dd/yyyy' as it is not specified. Consider rewriting function if necessary.
+                              to_date(forecast_dt,'MM/dd/yyyy')
+[09/05/2019 15:42:52][WARN] :Using default date format 'MM/dd/yyyy' as it is not specified. Consider rewriting function if necessary.
+                              to_date(getdate(),'MM/dd/yyyy')
+[09/05/2019 15:42:52][WARN] :Using default date format 'MM/dd/yyyy' as it is not specified. Consider rewriting function if necessary.
+                              to_date(forecast_dt,'MM/dd/yyyy')
+[09/05/2019 15:42:52][WARN] :Using default date format 'MM/dd/yyyy' as it is not specified. Consider rewriting function if necessary.
+                              to_date(getdate(),'MM/dd/yyyy')
+[09/05/2019 15:42:52][WARN] :Using default date format 'MM/dd/yyyy' as it is not specified. Consider rewriting function if necessary.
+                              to_date(forecast_dt,'MM/dd/yyyy')
+[09/05/2019 15:42:52][WARN] :Using default date format 'MM/dd/yyyy' as it is not specified. Consider rewriting function if necessary.
+                              to_date(getdate(),'MM/dd/yyyy')
+[09/05/2019 15:42:52][WARN] :Using default date format 'MM/dd/yyyy' as it is not specified. Consider rewriting function if necessary.
+                              to_date(forecast_dt,'MM/dd/yyyy')
+[09/05/2019 15:42:52][WARN] :Using default date format 'MM/dd/yyyy' as it is not specified. Consider rewriting function if necessary.
+                              to_date(getdate(),'MM/dd/yyyy')
+[09/05/2019 15:42:52][WARN] :Using default date format 'MM/dd/yyyy' as it is not specified. Consider rewriting function if necessary.
+                              to_date(forecast_dt,'MM/dd/yyyy')
+[09/05/2019 15:42:52][WARN] :Using default date format 'MM/dd/yyyy' as it is not specified. Consider rewriting function if necessary.
+                              to_date(getdate(),'MM/dd/yyyy')
+[09/05/2019 15:42:52][WARN] :Using default date format 'MM/dd/yyyy' as it is not specified. Consider rewriting function if necessary.
+                              to_date(forecast_dt,'MM/dd/yyyy')
+[09/05/2019 15:42:52][WARN] :Using default date format 'MM/dd/yyyy' as it is not specified. Consider rewriting function if necessary.
+                              to_date(getdate(),'MM/dd/yyyy')
+[09/05/2019 15:42:52][WARN] :Using default date format 'MM/dd/yyyy' as it is not specified. Consider rewriting function if necessary.
+                              to_date(forecast_dt,'MM/dd/yyyy')
+[09/05/2019 15:42:52][WARN] :Using default date format 'MM/dd/yyyy' as it is not specified. Consider rewriting function if necessary.
+                              to_date(getdate(),'MM/dd/yyyy')
+[09/05/2019 15:42:52][WARN] :Using default date format 'MM/dd/yyyy' as it is not specified. Consider rewriting function if necessary.
+                              to_date(forecast_dt,'MM/dd/yyyy')
+[09/05/2019 15:42:52][WARN] :Using default date format 'MM/dd/yyyy' as it is not specified. Consider rewriting function if necessary.
+                              to_date(getdate(),'MM/dd/yyyy')
+[09/05/2019 15:42:52][INFO] :Statement parse completed.
+[09/05/2019 15:42:52][INFO] :Converting INSERT INTO statement by SELECT. Inserting into ams.iw_growth_stnorm_hourly
+[09/05/2019 15:42:52][INFO] :Converting IF condition statement
+[09/05/2019 15:42:52][INFO] :Converting IF condition statement
+[09/05/2019 15:42:52][INFO] :Modified below conditinal expression from
+                              (imode=3)
+                              to
+                              (imode==3)
+[09/05/2019 15:42:55][INFO] :Statement parse completed.
+[09/05/2019 15:42:55][INFO] :Processing SELECT statement
+[09/05/2019 15:42:55][INFO] :Converting IF condition statement
+[09/05/2019 15:42:55][INFO] :Converting IF condition statement
+[09/05/2019 15:42:55][INFO] :Modified below conditinal expression from
+                              (imode=4)
+                              to
+                              (imode==4)
+[09/05/2019 15:42:57][INFO] :Statement parse completed.
+[09/05/2019 15:42:57][INFO] :Processing SELECT statement
+[09/05/2019 15:42:57][INFO] :Converting IF condition statement
+[09/05/2019 15:42:57][INFO] :Processing DECLARE variable statement
+[09/05/2019 15:42:57][INFO] :Processing SET statement
+[09/05/2019 15:42:58][WARN] :error_message Function is not covered in scope and has been kept AS IS in target code. Consider manual reconstruction if necessary.
+                              error_message()
+[09/05/2019 15:42:58][WARN] :error_severity Function is not covered in scope and has been kept AS IS in target code. Consider manual reconstruction if necessary.
+                              error_severity()
+[09/05/2019 15:42:58][WARN] :error_state Function is not covered in scope and has been kept AS IS in target code. Consider manual reconstruction if necessary.
+                              error_state()
+[09/05/2019 15:42:58][INFO] :Statement parse completed.
+[09/05/2019 15:42:58][INFO] :Replacing variables found in statement @errorstate,@errorseverity
+[09/05/2019 15:42:58][INFO] :Adding dataframe write code based on conversion context
+                              output code type: pyspark
+                              execution platform: glue

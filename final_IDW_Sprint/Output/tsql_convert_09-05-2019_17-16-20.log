@@ -1,0 +1,235 @@
+[09/05/2019 17:16:04][INFO] :Conversion context :
+                              source_db : sqlserver
+                              target_db : aws_s3
+                              platform : glue
+                              in_code_type : tsql
+                              out_code_type : pyspark
+                              source_dir : C:\Users\514025\Desktop\final_IDW_Sprint\Input
+                              target_dir : C:\Users\514025\Desktop\final_IDW_Sprint\Output
+[09/05/2019 17:16:05][INFO] :Starting conversion for file C:\Users\514025\Desktop\final_IDW_Sprint\Input\merge_stmts.sql
+[09/05/2019 17:16:05][INFO] :Reading script content
+[09/05/2019 17:16:05][INFO] :Number of lines are 218
+[09/05/2019 17:16:05][INFO] :Removing comment lines from script content
+[09/05/2019 17:16:05][INFO] :Changing script content to lower case.
+[09/05/2019 17:16:05][INFO] :Starting process to split script content to individual statements.
+[09/05/2019 17:16:20][INFO] :Script contect parse completed.
+[09/05/2019 17:16:20][INFO] :Splitting script content into individual statements based on semi-colon.
+[09/05/2019 17:16:20][INFO] :Identiying statements in scope of the converter
+[09/05/2019 17:16:20][WARN] :Statement skipped. Outside stored procedure definition.
+                              merge icm_ods.icm_ods.prem_addr_dtls as a
+                                    using
+                                      (
+                                      select
+                                        cis_cust_no
+                                        ,cis_prem_no
+                                        ,convert(tinyint,1) as src_sys_id
+                                        ,svc_strt_no
+                                        ,svc_strt_name
+                                        ,svc_unit_no
+                                        ,svc_city
+                                        ,svc_state
+                                        ,svc_zip
+                                        ,svc_cntry
+                                        from #prem_addr_prelim
+                                      ) as b
+                                    on
+                                      (
+                                        a.cis_prem_no = b.cis_prem_no
+                                      and a.cis_cust_no = b.cis_cust_no
+                                      and a.src_sys_id = b.src_sys_id
+                                      )
+                                    when not matched then
+                                      insert
+                                        (
+                                        cis_cust_no
+                                        ,cis_prem_no
+                                        ,src_sys_id
+                                        ,svc_strt_no
+                                        ,svc_strt_name
+                                        ,svc_unit_no
+                                        ,svc_city
+                                        ,svc_state
+                                        ,svc_zip
+                                        ,svc_cntry
+                                        ,his_ind
+                                        ,loadcontrolcreateid
+                                        ,crdt
+                                        ,updt
+                                        )
+                                        values
+                                        (
+                                        b.cis_cust_no
+                                        ,b.cis_prem_no
+                                        ,b.src_sys_id
+                                        ,b.svc_strt_no
+                                        ,b.svc_strt_name
+                                        ,b.svc_unit_no
+                                        ,b.svc_city
+                                        ,b.svc_state
+                                        ,b.svc_zip
+                                        ,b.svc_cntry
+                                        ,'C'
+                                        ,@loadcontrolid
+                                        ,@dtnow
+                                        ,@dtnow
+                                        )
+[09/05/2019 17:16:20][WARN] :Statement skipped. Outside stored procedure definition.
+                              merge icm_ods.icm_ods.prem_dtls as a
+                                    using
+                                      (
+                                      select 
+                                        cis_cust_no
+                                        ,cis_prem_no
+                                        ,ldc_acnt_no
+                                        ,src_sys_id
+                                        ,ldc_cd
+                                        ,sign_dt
+                                        ,flow_begin_dt
+                                        ,flow_end_dt
+                                        ,dw_status
+                                        ,dw_sub_status
+                                        ,src_status
+                                        ,commdty_cd
+                                        ,company_cd
+                                        ,brand
+                                        ,bus_unit
+                                        ,lob
+                                        ,cust_type_cd
+                                        ,dwlng_type
+                                        ,plan_id
+                                        ,product_cd
+                                        ,plan_offer_type
+                                        ,rate_plan_begin_dt
+                                        ,rate_plan_end_dt
+                                        ,plan_term
+                                        from #prem_dtls_peace
+                                      ) as b
+                                      on
+                                      (
+                                          a.cis_prem_no = b.cis_prem_no
+                                      and a.cis_cust_no = b.cis_cust_no
+                                      and a.src_sys_id = b.src_sys_id
+                                      and a.src_sys_id = 1
+                                      and a.his_ind = 'C'
+                                      )
+                                    when not matched  by target then
+                                      insert
+                                        (
+                                        cis_cust_no
+                                        ,cis_prem_no
+                                        ,ldc_acnt_no
+                                        ,src_sys_id
+                                        ,ldc_cd
+                                        ,crdt
+                                        ,sign_dt
+                                        ,flow_begin_dt
+                                        ,flow_end_dt
+                                        ,dw_status
+                                        ,dw_sub_status
+                                        ,src_status
+                                        ,commdty_cd
+                                        ,company_cd
+                                        ,brand
+                                        ,bus_unit
+                                        ,lob
+                                        ,cust_type_cd
+                                        ,dwlng_type
+                                        ,plan_id
+                                        ,product_cd
+                                        ,plan_offer_type
+                                        ,rate_plan_begin_dt
+                                        ,rate_plan_end_dt
+                                        ,plan_term
+                                        ,his_ind
+                                        ,loadcontrolcreateid
+                                        ,updt
+                                        )
+                                      values
+                                        (
+                                        b.cis_cust_no
+                                        ,b.cis_prem_no
+                                        ,b.ldc_acnt_no
+                                        ,b.src_sys_id
+                                        ,b.ldc_cd
+                                        ,@dtnow
+                                        ,b.sign_dt
+                                        ,b.flow_begin_dt
+                                        ,b.flow_end_dt
+                                        ,b.dw_status
+                                        ,b.dw_sub_status
+                                        ,b.src_status
+                                        ,b.commdty_cd
+                                        ,b.company_cd
+                                        ,b.brand
+                                        ,b.bus_unit
+                                        ,b.lob
+                                        ,b.cust_type_cd
+                                        ,b.dwlng_type
+                                        ,b.plan_id
+                                        ,b.product_cd
+                                        ,b.plan_offer_type
+                                        ,b.rate_plan_begin_dt
+                                        ,b.rate_plan_end_dt
+                                        ,b.plan_term
+                                        ,'C'
+                                        ,@loadcontrolid
+                                        ,@dtnow )
+[09/05/2019 17:16:20][WARN] :Statement skipped. Outside stored procedure definition.
+                              merge icm_ods.icm_ods.prem_enrol_dtls as ods  
+                                    using  
+                                      (  
+                                 select [cis_cust_no]  
+                                    ,[cis_prem_no]  
+                                   ,agent_cd,  
+                                   cust_grp_cd,  
+                                   group_id,  
+                                   promo_id,
+                                   mdu_ind,
+                                   msid
+                                    ,[loadcontrolcreateid]  
+                                    ,[crdt] 
+                                 from  [icm_stage].[icm_trans].[peacetx_prem_enrol_chanl_dtls]  
+                                      ) as b  
+                                      on b.cis_prem_no = ods.cis_prem_no  
+                                and b.cis_cust_no = ods.cis_cust_no  
+                                and ods.src_sys_id = 1  and ods.his_ind = 'C'  
+                                    when not matched then  
+                                      insert  
+                                        (  
+                                 cis_cust_no,  
+                                 cis_prem_no,  
+                                 src_sys_id,  
+                                 agent_cd,  
+                                 appsrc_custgrp_cd,  
+                                 group_id,  
+                                 promo_id,
+                                 mdu_ind,
+                                 msid,  
+                                 his_ind,  
+                                 loadcontrolcreateid,  
+                                 crdt,  
+                                 updt  
+                                        )  
+                                        values  
+                                        (  
+                                    b.cis_cust_no  
+                                   ,b.cis_prem_no  
+                                   ,1  
+                                  ,agent_cd,  
+                                   cust_grp_cd,  
+                                  group_id,  
+                                  promo_id,
+                                  mdu_ind,
+                                  msid
+                                   ,'C'  
+                                   ,@loadcontrolid  
+                                   ,@dtnow  
+                                   ,@dtnow  
+                                        )
+[09/05/2019 17:16:20][INFO] :Scanning script contect for all the tables used
+[09/05/2019 17:16:20][INFO] :Adding dataframe read code based on conversion context
+                              output code type: pyspark
+                              execution platform: glue
+[09/05/2019 17:16:20][INFO] :Adding dataframe write code based on conversion context
+                              output code type: pyspark
+                              execution platform: glue
